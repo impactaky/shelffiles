@@ -19,13 +19,7 @@ mkdir -p "$XDG_CACHE_HOME"
 mkdir -p "$XDG_DATA_HOME"
 mkdir -p "$XDG_STATE_HOME"
 
-
-# Application settings
-# https://wiki.archlinux.org/title/XDG_Base_Directory
-
-## starship
-export STARSHIP_CONFIG="$XDG_CONFIG_HOME"/starship.toml
-export STARSHIP_CACHE="$XDG_CACHE_HOME"/starship
-
-## zsh
-export ZDOTDIR="$DOTFILES/config/zsh"
+USER_ENV_FILE="$SHELFFILES/user_env.sh"
+if [ -f "$USER_ENV_FILE" ]; then
+  . "$USER_ENV_FILE"
+fi
