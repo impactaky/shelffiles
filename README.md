@@ -138,7 +138,3 @@ Shelffiles works by:
 2. Using Nix flakes to manage packages in a reproducible way
 3. Providing a consistent environment across different systems
 4. Using a central package configuration file for easy customization
-
-## License
-
-See the LICENSE file for details. 
