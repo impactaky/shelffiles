@@ -10,8 +10,8 @@ if [ $# -gt 0 ]; then
     exec "$@"
 else
     # Use the user's preferred shell or fall back to bash
-    if [ -n "$SHELL" ]; then
-        exec "$SHELL"
+    if [ -n "$SHELFFILES_SHELL" ]; then
+        exec "$SHELFFILES_SHELL"
     else
         exec bash
     fi
