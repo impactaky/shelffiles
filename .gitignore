@@ -1,0 +1,12 @@
+# Generated files
+cache/
+share/
+state/
+result
+flake.lock
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*~
