@@ -4,8 +4,8 @@
 SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)"
 export SHELFFILES="$SCRIPT_DIR"
 
-# Create a unique ID based on the path to avoid conflicts when using in multiple locations
-PATH_ID=$(echo "$SHELFFILES" | tr '/:' '__')
+# Create a unique ID based on the path, user ID and group ID to avoid conflicts
+PATH_ID=$(echo "${SHELFFILES}_$(id -u)_$(id -g)" | tr '/:' '__')
 
 # Set XDG environment variables to use directories within the repository
 export XDG_CONFIG_HOME="$SHELFFILES/config"
