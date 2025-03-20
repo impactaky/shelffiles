@@ -4,7 +4,7 @@
 SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)"
 
 # Source the environment setup
-. "$SCRIPT_DIR/use_env.sh" "$1"
+. "$SCRIPT_DIR/use_env.sh"
 
 # Use the user's preferred shell or fall back to bash
 case "$SHELFFILES_SHELL" in

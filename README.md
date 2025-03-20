@@ -21,14 +21,18 @@ Shelffiles is a portable environment configuration system that uses Nix to manag
    nix build
    ```
 
-3. Enter the environment:
+3. Configure your preferred shell (optional):
    ```bash
-   # Use default shell (bash)
-   ./entrypoint.sh
+   # Create user_env.sh if it doesn't exist
+   touch user_env.sh
    
-   # Or specify a shell
-   ./entrypoint.sh fish  # for Fish shell
-   ./entrypoint.sh zsh   # for Zsh shell
+   # Add your shell preference to user_env.sh
+   echo 'export SHELFFILES_SHELL=zsh  # or fish, or leave unset for bash' >> user_env.sh
+   ```
+
+4. Enter the environment:
+   ```bash
+   ./entrypoint.sh
    ```
 
 ## Customization
@@ -125,6 +129,7 @@ shelffiles/
 ├── state/            # XDG_STATE_HOME
 ├── entrypoint.sh     # Script to enter the environment
 ├── use_env.sh        # Script to setup environment variables
+├── user_env.sh       # User-specific environment settings (git-ignored)
 └── flake.nix         # Nix flake configuration
 ```
 
@@ -169,10 +174,6 @@ Here's an example of how you might customize your `devcontainer.json` with shelf
   // Shelffiles-specific settings (will be filtered out when committing)
   "mounts": [
     "source=${localWorkspaceFolder}/shelffiles,target=/home/vscode/shelffiles,type=bind"
-  ],
-  "postCreateCommand": "cd /home/vscode/shelffiles && ./entrypoint.sh zsh",  // Specify shell if needed
-  "remoteEnv": {
-    "SHELFFILES_PATH": "/home/vscode/shelffiles"
-  }
+  ]
 }
 ```
