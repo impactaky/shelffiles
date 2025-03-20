@@ -10,3 +10,6 @@ flake.lock
 .idea/
 *.swp
 *~
+
+# User-specific environment settings
+user_env.sh

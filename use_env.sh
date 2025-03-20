@@ -1,13 +1,11 @@
 #!/bin/sh
 
-# Get the absolute path of the script directory
-SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)"
-. "$SCRIPT_DIR/env.sh"
+# Reference: https://wiki.archlinux.org/title/XDG_Base_Directory
 
-# Set the shell to use based on the first argument
-if [ -n "$1" ]; then
-    SHELFFILES_SHELL="$1"
-fi
+## starship
+export STARSHIP_CONFIG="$XDG_CONFIG_HOME"/starship.toml
+export STARSHIP_CACHE="$XDG_CACHE_HOME"/starship
 
-# Export the shell setting
-export SHELFFILES_SHELL 
+# Chose shell in shelffiles zsh or fish
+# export SHELFFILES_SHELL=zsh
+# export SHELFFILES_SHELL=fish
