@@ -2,14 +2,6 @@
 
 Shelffiles is a portable environment configuration system that uses Nix to manage packages and configuration files. It's designed to be easy to set up and use across different systems.
 
-## Features
-
-- **Portable**: Works on any system with Nix installed
-- **No symlinks**: All configuration files are contained within the repository
-- **Nix integration**: Uses Nix flakes for reproducible package management
-- **Simple package configuration**: Easily customize your environment through a single configuration file
-- **Built-in debugging**: Troubleshoot configuration issues with helpful debug output
-
 ## Getting Started
 
 ### Prerequisites
@@ -138,3 +130,43 @@ Shelffiles works by:
 2. Using Nix flakes to manage packages in a reproducible way
 3. Providing a consistent environment across different systems
 4. Using a central package configuration file for easy customization
+
+## Git Integration
+
+### Devcontainer Configuration
+
+The `example/git` directory contains Git filter settings for `devcontainer.json` files. This filter automatically excludes lines containing "shelffiles" when committing.
+
+This allows you to add shelffiles-specific settings to your `devcontainer.json` for your local environment without sharing them in the repository.
+
+To use this feature, copy the files in `example/git` to your Git configuration directory or reference them in your Git settings.
+
+#### Example Usage
+
+Here's an example of how you might customize your `devcontainer.json` with shelffiles-specific settings:
+
+```json
+{
+  "name": "My Development Container",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  
+  // Standard settings (shared with everyone)
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-vscode.cpptools"
+      ]
+    }
+  },
+  
+  // Shelffiles-specific settings (will be filtered out when committing)
+  "mounts": [
+    "source=${localWorkspaceFolder}/shelffiles,target=/home/vscode/shelffiles,type=bind"
+  ],
+  "postCreateCommand": "cd /home/vscode/shelffiles && ./entrypoint.sh",
+  "remoteEnv": {
+    "SHELFFILES_PATH": "/home/vscode/shelffiles"
+  }
+}
+```
