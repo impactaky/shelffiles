@@ -128,7 +128,6 @@ shelffiles/
 ├── share/            # XDG_DATA_HOME
 ├── state/            # XDG_STATE_HOME
 ├── entrypoint.sh     # Script to enter the environment
-├── use_env.sh        # Script to setup environment variables
 ├── user_env.sh       # User-specific environment settings (git-ignored)
 └── flake.nix         # Nix flake configuration
 ```
