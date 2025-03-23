@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# Get the absolute path of the script directory
+SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)"
+SHELFFILES="$(CDPATH='' cd -- "$SCRIPT_DIR/.." && pwd)"
+
+# Source the environment setup
+. "$SCRIPT_DIR/env.sh"
+
+# Set ZDOTDIR if not already set
+[ -z "$ZDOTDIR" ] && export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
+
+# Execute zsh
+exec zsh "$@" 
