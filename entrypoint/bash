@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# Get the absolute path of the script directory
+SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)"
+SHELFFILES="$(CDPATH='' cd -- "$SCRIPT_DIR/.." && pwd)"
+
+# Source the environment setup
+. "$SCRIPT_DIR/env.sh"
+
+# Execute bash
+exec bash "$@" 

@@ -1,11 +1,13 @@
-#!/bin/sh
-
-# Get the absolute path of the script directory
-SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)"
-export SHELFFILES="$SCRIPT_DIR"
+# Check if SHELFFILES variable is set
+if [ -z "$SHELFFILES" ]; then
+  echo "Error: SHELFFILES variable is not set. Please define it before sourcing this script."
+  return 1 2>/dev/null || exit 1
+fi
 
 # Create a unique ID based on the path, user ID and group ID to avoid conflicts
-PATH_ID=$(echo "${SHELFFILES}_$(id -u)_$(id -g)" | tr '/:' '__')
+USER_ID=$(id -u)
+GROUP_ID=$(id -g)
+PATH_ID=$(echo "${SHELFFILES}_${USER_ID}_${GROUP_ID}" | tr '/:' '__')
 
 # Set XDG environment variables to use directories within the repository
 export XDG_CONFIG_HOME="$SHELFFILES/config"

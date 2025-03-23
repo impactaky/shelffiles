@@ -21,18 +21,12 @@ Shelffiles is a portable environment configuration system that uses Nix to manag
    nix build
    ```
 
-3. Configure your preferred shell (optional):
+3. Enter the environment:
    ```bash
-   # Create user_env.sh if it doesn't exist
-   touch user_env.sh
-   
-   # Add your shell preference to user_env.sh
-   echo 'export SHELFFILES_SHELL=zsh  # or fish, or leave unset for bash' >> user_env.sh
-   ```
-
-4. Enter the environment:
-   ```bash
-   ./entrypoint.sh
+   # Use the shell-specific entrypoint
+   ./entrypoint/zsh    # For zsh
+   ./entrypoint/fish   # For fish
+   ./entrypoint/bash   # For bash
    ```
 
 ## Customization
@@ -98,7 +92,7 @@ To add your own configuration files:
    EOF
    ```
 
-When you enter the environment using `./entrypoint.sh`, these configuration files will be used automatically because the script sets the appropriate XDG environment variables to point to the directories within the repository.
+When you enter the environment using the shell-specific entrypoint scripts (`./entrypoint/bash`, `./entrypoint/zsh`, or `./entrypoint/fish`), these configuration files will be used automatically because the script sets the appropriate XDG environment variables to point to the directories within the repository.
 
 ### Finding Available Packages
 
@@ -127,9 +121,27 @@ shelffiles/
 ├── cache/            # XDG_CACHE_HOME
 ├── share/            # XDG_DATA_HOME
 ├── state/            # XDG_STATE_HOME
-├── entrypoint.sh     # Script to enter the environment
+├── entrypoint/       # Shell-specific entrypoint scripts
+│   ├── bash          # Bash entrypoint
+│   ├── fish          # Fish entrypoint
+│   └── zsh           # Zsh entrypoint
 ├── user_env.sh       # User-specific environment settings (git-ignored)
 └── flake.nix         # Nix flake configuration
+```
+
+## Testing
+
+To run tests for a specific shell:
+
+```bash
+# Test with zsh
+./test/test.sh zsh
+
+# Test with fish
+./test/test.sh fish
+
+# Test with bash
+./test/test.sh bash
 ```
 
 ## How It Works
