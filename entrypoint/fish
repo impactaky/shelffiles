@@ -5,7 +5,7 @@ SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)"
 SHELFFILES="$(CDPATH='' cd -- "$SCRIPT_DIR/.." && pwd)"
 
 # Source the environment setup
-. "$SHELFFILES/entrypoint/env.sh"
+. "$SCRIPT_DIR/env.sh"
 
 # Execute fish
 exec fish "$@" 
