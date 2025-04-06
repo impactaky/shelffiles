@@ -1,3 +1,8 @@
+# export SHELFFILES
+SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)"
+SHELFFILES="$(CDPATH='' cd -- "$SCRIPT_DIR/.." && pwd)"
+export SHELFFILES="$SHELFFILES"
+
 # Check if SHELFFILES variable is set
 if [ -z "$SHELFFILES" ]; then
   echo "Error: SHELFFILES variable is not set. Please define it before sourcing this script."
