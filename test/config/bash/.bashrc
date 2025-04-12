@@ -1,0 +1,1 @@
+export SHELFFILES_BASH_TEST="loaded"
