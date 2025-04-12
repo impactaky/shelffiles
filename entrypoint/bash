@@ -6,5 +6,8 @@ SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)"
 # Source the environment setup
 . "$SCRIPT_DIR/env.sh"
 
+mkdir -p "$XDG_STATE_HOME"/bash
+export HISTFILE="$XDG_STATE_HOME"/bash/history
+
 # Execute bash
-exec bash "$@"
+exec bash --init-file "$XDG_CONFIG_HOME"/bash/.bashrc "$@"
