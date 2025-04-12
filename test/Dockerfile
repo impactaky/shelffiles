@@ -22,10 +22,4 @@ COPY test/test ./test/
 ENV PATH="/app/result/bin:$PATH"
 
 # Make scripts executable and run tests
-RUN chmod +x entrypoint/* && \
-    bats test
-
-# CMD is not needed as tests run during build
-
-# # Remove CMD as tests are run during build
-# # CMD ["./test/test.sh", "bash"] 
+RUN bats test
