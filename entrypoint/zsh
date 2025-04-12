@@ -10,5 +10,8 @@ SHELFFILES="$(CDPATH='' cd -- "$SCRIPT_DIR/.." && pwd)"
 # Set ZDOTDIR if not already set
 [ -z "$ZDOTDIR" ] && export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
 
+# Workaround for vscode shell integration
+USER_ZDOTDIR="$XDG_CONFIG_HOME/zsh"
+
 # Execute zsh
 exec zsh "$@" 
