@@ -1,0 +1,1 @@
+export SHELFFILES_ZSH_TEST="loaded" 
