@@ -17,14 +17,13 @@ RUN nix build
 # Copy required files after nix build
 COPY entrypoint ./entrypoint/
 COPY test/config ./config/
-COPY test/test ./test
+COPY test/test ./test/
 
 ENV PATH="/app/result/bin:$PATH"
 
 # Make scripts executable and run tests
 RUN chmod +x entrypoint/* && \
-    # Run bats tests
-    bats test/zshrc_load.bats
+    bats test
 
 # CMD is not needed as tests run during build
 
