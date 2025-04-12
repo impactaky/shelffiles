@@ -1,0 +1,26 @@
+name: Test Docker Build
+
+on:
+  pull_request:
+    paths:
+      - 'test/**'
+      - '.github/workflows/test.yml'
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image and run tests with cache
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./test/Dockerfile
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
