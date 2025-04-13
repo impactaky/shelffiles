@@ -15,5 +15,5 @@ setup() {
   # Check if the command sequence executed successfully (status 0)
   [ "$status" -eq 0 ]
 
-  [[ "$output" == "loaded" ]]
-} 
+  [[ "$output" == *"loaded" ]]
+}

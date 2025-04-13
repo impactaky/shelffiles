@@ -1,3 +1,4 @@
+# shellcheck shell=sh
 # Reference: https://wiki.archlinux.org/title/XDG_Base_Directory
 
 ## bash

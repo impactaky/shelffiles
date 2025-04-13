@@ -5,4 +5,4 @@ pkgs: with pkgs; [
 
   # Test framework
   bats     # Bash Automated Testing System
-] 
+]

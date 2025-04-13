@@ -7,4 +7,4 @@ SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)"
 . "$SCRIPT_DIR/env.sh"
 
 # Execute fish
-exec fish "$@" 
+exec fish "$@"

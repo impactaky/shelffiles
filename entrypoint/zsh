@@ -3,6 +3,7 @@
 # Get the absolute path of the script directory
 SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)"
 SHELFFILES="$(CDPATH='' cd -- "$SCRIPT_DIR/.." && pwd)"
+export SHELFFILES="$SHELFFILES"
 
 # Source the environment setup
 . "$SCRIPT_DIR/env.sh"
@@ -11,7 +12,7 @@ SHELFFILES="$(CDPATH='' cd -- "$SCRIPT_DIR/.." && pwd)"
 [ -z "$ZDOTDIR" ] && export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
 
 # Workaround for vscode shell integration
-USER_ZDOTDIR="$XDG_CONFIG_HOME/zsh"
+export USER_ZDOTDIR="$XDG_CONFIG_HOME/zsh"
 
 # Execute zsh
-exec zsh "$@" 
+exec zsh "$@"
