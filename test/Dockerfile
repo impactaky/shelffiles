@@ -1,4 +1,4 @@
-FROM nixos/nix
+FROM nixos/nix:2.24.14
 
 # Enable flakes
 RUN mkdir -p /etc/nix && \

@@ -12,3 +12,7 @@ repos:
   hooks:
   - id: shellcheck
     args: ["-x", "-P", "entrypoint"]
+- repo: https://github.com/AleksaC/hadolint-py
+  rev: v2.12.1b3
+  hooks:
+    - id: hadolint
