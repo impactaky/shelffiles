@@ -2,13 +2,13 @@
 
 SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)"
 SHELFFILES="$(CDPATH='' cd -- "$SCRIPT_DIR/.." && pwd)"
-export SHELFFILES="$SHELFFILES"
-
-# Check if SHELFFILES variable is set
-if [ -z "$SHELFFILES" ]; then
+if [ "$APPIMAGE" ]; then
+  SHELFFILES="$(CDPATH='' cd -- "$APPIMAGE/.." && pwd)"
+elif [ -z "$SHELFFILES" ]; then
   echo "Error: SHELFFILES variable is not set. Please define it before sourcing this script."
   return 1 2>/dev/null
 fi
+export SHELFFILES="$SHELFFILES"
 
 # Create a unique ID based on the path, user ID and group ID to avoid conflicts
 USER_ID=$(id -u)
