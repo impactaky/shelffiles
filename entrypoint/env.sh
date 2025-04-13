@@ -1,4 +1,5 @@
-# export SHELFFILES
+# shellcheck shell=sh
+
 SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)"
 SHELFFILES="$(CDPATH='' cd -- "$SCRIPT_DIR/.." && pwd)"
 export SHELFFILES="$SHELFFILES"
@@ -6,7 +7,7 @@ export SHELFFILES="$SHELFFILES"
 # Check if SHELFFILES variable is set
 if [ -z "$SHELFFILES" ]; then
   echo "Error: SHELFFILES variable is not set. Please define it before sourcing this script."
-  return 1 2>/dev/null || exit 1
+  return 1 2>/dev/null
 fi
 
 # Create a unique ID based on the path, user ID and group ID to avoid conflicts
@@ -28,5 +29,6 @@ mkdir -p "$XDG_STATE_HOME"
 
 USER_ENV_FILE="$SHELFFILES/user_env.sh"
 if [ -f "$USER_ENV_FILE" ]; then
+  # shellcheck disable=SC1090
   . "$USER_ENV_FILE"
 fi

@@ -6,6 +6,7 @@ setup() {
 }
 
 @test "entrypoint/fish loads config/fish/config.fish implicitly" {
+  # shellcheck disable=SC2016
   run ./entrypoint/fish -i -c 'echo $SHELFFILES_FISH_TEST'
 
   # For debugging
@@ -17,4 +18,4 @@ setup() {
 
   # Check if the output contains "loaded", ignoring potential warnings
   [[ "$output" == *"loaded" ]]
-} 
+}

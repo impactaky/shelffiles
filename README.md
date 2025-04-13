@@ -41,7 +41,7 @@ pkgs: with pkgs; [
   git      # Version control system
   ripgrep  # Fast text search tool
   fzf      # Command-line fuzzy finder
-  
+
   # Uncomment or add packages you need
   # zsh       # Z Shell
   # neovim    # Vim-based text editor
@@ -71,7 +71,7 @@ To add your own configuration files:
    # Example: Adding a Neovim configuration
    mkdir -p config/nvim
    touch config/nvim/init.lua
-   
+
    # Example: Adding a Git configuration
    mkdir -p config/git
    touch config/git/config
@@ -81,7 +81,7 @@ To add your own configuration files:
    ```bash
    # Example: Basic Neovim configuration
    echo 'vim.opt.number = true' > config/nvim/init.lua
-   
+
    # Example: Basic Git configuration
    cat > config/git/config << EOF
    [user]
@@ -171,7 +171,7 @@ Here's an example of how you might customize your `devcontainer.json` with shelf
 {
   "name": "My Development Container",
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
-  
+
   // Standard settings (shared with everyone)
   "customizations": {
     "vscode": {
@@ -181,7 +181,7 @@ Here's an example of how you might customize your `devcontainer.json` with shelf
       ]
     }
   },
-  
+
   // Shelffiles-specific settings (will be filtered out when committing)
   "mounts": [
     "source=${localWorkspaceFolder}/shelffiles,target=/home/vscode/shelffiles,type=bind"
