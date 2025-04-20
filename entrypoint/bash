@@ -10,4 +10,7 @@ mkdir -p "$XDG_STATE_HOME"/bash
 export HISTFILE="$XDG_STATE_HOME"/bash/history
 
 # Execute bash
+if [ ! -e "$SHELFFILES/result" ]; then
+    exec "$SCRIPT_DIR/launch_in_bwrap.sh" bash --init-file "$XDG_CONFIG_HOME"/bash/.bashrc "$@"
+fi
 exec bash --init-file "$XDG_CONFIG_HOME"/bash/.bashrc "$@"
