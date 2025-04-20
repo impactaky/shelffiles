@@ -49,4 +49,4 @@ done < <(find / -maxdepth 1 -mindepth 1)
 BWRAP_ARGS+=(--dir /nix)
 BWRAP_ARGS+=(--bind "$NIX_HOST_PATH" /nix)
 
-exec bwrap "${BWRAP_ARGS[@]}" "$@" 
+exec bwrap "${BWRAP_ARGS[@]}" "$@"
