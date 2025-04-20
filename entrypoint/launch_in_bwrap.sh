@@ -2,10 +2,10 @@
 
 set -eu
 
-NIX_STORE_HOST_PATH="${SHELFFILES}/nix/store"
+NIX_HOST_PATH="${SHELFFILES}/nix"
 
-if [ ! -d "$NIX_STORE_HOST_PATH" ]; then
-  echo "Error: Directory not found: ${NIX_STORE_HOST_PATH}" >&2
+if [ ! -d "$NIX_HOST_PATH" ]; then
+  echo "Error: Directory not found: ${NIX_HOST_PATH}" >&2
   exit 1
 fi
 
@@ -47,6 +47,6 @@ done < <(find / -maxdepth 1 -mindepth 1)
 
 # Handle /nix
 BWRAP_ARGS+=(--dir /nix)
-BWRAP_ARGS+=(--bind "$NIX_STORE_HOST_PATH" /nix/store)
+BWRAP_ARGS+=(--bind "$NIX_HOST_PATH" /nix)
 
 exec bwrap "${BWRAP_ARGS[@]}" "$@" 
