@@ -33,7 +33,7 @@ if [ "$NO_ROOT" -eq 0 ]; then
         # shellcheck disable=SC1091
         . "$HOME"/.nix-profile/etc/profile.d/nix.sh
     fi
-elif ! command -v nix-portable &> /dev/null; then
+elif [ ! -e nix-portable ]; then
     echo "Installing nix-portable..."
     curl -L https://github.com/DavHau/nix-portable/releases/download/v012/nix-portable-"$(arch)" -o nix-portable
     chmod +x nix-portable
@@ -43,5 +43,5 @@ echo "Building..."
 if [ "$NO_ROOT" -eq 0 ]; then
     nix build --extra-experimental-features nix-command --extra-experimental-features flakes
 else
-    ./nix-portable build --extra-experimental-features nix-command --extra-experimental-features flakes --store "$(pwd)"
+    ./nix-portable nix build --extra-experimental-features nix-command --extra-experimental-features flakes --store "$(pwd)"
 fi
