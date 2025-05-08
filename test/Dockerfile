@@ -22,5 +22,8 @@ COPY test/test ./test/
 
 ENV PATH="/app/result/bin:$PATH"
 
+# Install bats for testing
+RUN apt-get update && apt-get install -y bats
+
 # Make scripts executable and run tests
 RUN bats test
