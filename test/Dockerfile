@@ -10,7 +10,7 @@ WORKDIR /app
 # Copy only the files needed for nix build
 COPY flake.nix .
 COPY packages.nix .
-COPY test/config/nix ./config/nix
+COPY test/packages.nix ./config/nix/packages.nix
 
 # Create necessary directories and build
 RUN nix build
