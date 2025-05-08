@@ -22,10 +22,8 @@ COPY test/test ./test/
 
 ENV PATH="/app/result/bin:$PATH"
 
-# Install bats for testing
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends bats=1.7.0-1 && \
-    rm -rf /var/lib/apt/lists/*
+# Bats is already included in the nix environment
+# No need to install it separately as it's defined in test/packages.nix
 
 # Make scripts executable and run tests
 RUN bats test
