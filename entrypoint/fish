@@ -7,7 +7,7 @@ SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)"
 . "$SCRIPT_DIR/env.sh"
 
 # Execute fish
-if [ ! -e "$SHELFFILES/result" ]; then
+if [ ! -e "$SHELFFILES/result" ] && [ ! -e "$SHELFFILES/result_docker" ] ; then
     exec "$SCRIPT_DIR/launch_in_bwrap.sh" fish "$@"
 fi
 exec fish "$@"
