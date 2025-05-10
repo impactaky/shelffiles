@@ -11,7 +11,7 @@
       # Load user packages or use default packages if user packages don't exist
       loadPackages = system: pkgs:
         let
-          packagesPath = ./config/nix/packages.nix;
+          packagesPath = ./packages.nix;
         in import packagesPath pkgs;
     in {
       packages = nixpkgs.lib.genAttrs systems (system: {

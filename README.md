@@ -33,7 +33,7 @@ Shelffiles is a portable environment configuration system that uses Nix to manag
 
 ### Adding Packages
 
-Edit the `config/nix/packages.nix` file to add or remove packages:
+Edit the `packages.nix` file to add or remove packages:
 
 ```nix
 pkgs: with pkgs; [
@@ -55,7 +55,7 @@ After modifying the package list, rebuild the environment with:
 nix build
 ```
 
-> Note: If you want to keep your package configuration private, consider adding `/config/nix/packages.nix` to your `.gitignore` file.
+> Note: If you want to keep your package configuration private, consider adding `/packages.nix` to your `.gitignore` file.
 
 ### Adding Configuration Files
 
@@ -117,10 +117,10 @@ To find available packages that you can add to your configuration:
 shelffiles/
 ├── config/           # Configuration files
 │   └── nix/          # Nix-related configuration
-│       └── packages.nix  # Package definitions
 ├── cache/            # XDG_CACHE_HOME
 ├── share/            # XDG_DATA_HOME
 ├── state/            # XDG_STATE_HOME
+├── packages.nix      # Package definitions
 ├── entrypoint/       # Shell-specific entrypoint scripts
 │   ├── bash          # Bash entrypoint
 │   ├── fish          # Fish entrypoint
