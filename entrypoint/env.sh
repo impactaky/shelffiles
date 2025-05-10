@@ -20,7 +20,7 @@ export XDG_CONFIG_HOME="$SHELFFILES/config"
 export XDG_CACHE_HOME="$SHELFFILES/cache/${PATH_ID}"
 export XDG_DATA_HOME="$SHELFFILES/share/${PATH_ID}"
 export XDG_STATE_HOME="$SHELFFILES/state/${PATH_ID}"
-export PATH="$SHELFFILES/result/bin:$PATH"
+export PATH="$SHELFFILES/result/bin:$SHELFFILES/result_docker/bin:$PATH"
 
 # Create necessary directories
 mkdir -p "$XDG_CACHE_HOME"
