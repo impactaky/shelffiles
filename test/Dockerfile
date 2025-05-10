@@ -21,9 +21,5 @@ COPY test/test ./test/
 
 ENV PATH="/app/result/bin:$PATH"
 
-# Bats is already included in the nix environment
-# No need to install it separately as it's defined in test/packages.nix
-
 # Make scripts executable and run tests
-# Use nix-shell to ensure bats, zsh, and fish are in the PATH
-RUN nix-shell -p bats zsh fish --run "bats test"
+RUN bats test

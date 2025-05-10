@@ -120,6 +120,7 @@ shelffiles/
 ├── cache/            # XDG_CACHE_HOME
 ├── share/            # XDG_DATA_HOME
 ├── state/            # XDG_STATE_HOME
+├── packages.nix      # Package definitions
 ├── entrypoint/       # Shell-specific entrypoint scripts
 │   ├── bash          # Bash entrypoint
 │   ├── fish          # Fish entrypoint
