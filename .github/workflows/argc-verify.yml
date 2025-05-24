@@ -21,8 +21,10 @@ jobs:
 
       - name: Install argc
         run: |
-          wget -q https://github.com/sigoden/argc/releases/latest/download/argc-x86_64-unknown-linux-gnu.tar.gz
-          tar -xzf argc-x86_64-unknown-linux-gnu.tar.gz
+          # Get the latest release download URL
+          ARGC_URL=$(curl -s https://api.github.com/repos/sigoden/argc/releases/latest | grep "browser_download_url.*x86_64-unknown-linux-gnu.tar.gz" | cut -d '"' -f 4)
+          wget -q "$ARGC_URL"
+          tar -xzf argc-*.tar.gz
           sudo mv argc /usr/local/bin/
           chmod +x /usr/local/bin/argc
 
