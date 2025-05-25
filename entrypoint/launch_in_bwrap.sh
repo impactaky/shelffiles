@@ -2,6 +2,11 @@
 
 set -eu
 
+# Source environment and config
+SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)"
+# shellcheck disable=SC1091
+. "$SCRIPT_DIR/env.sh"
+
 NIX_HOST_PATH="${SHELFFILES}/nix"
 
 if [ ! -d "$NIX_HOST_PATH" ]; then
@@ -49,4 +54,9 @@ done < <(find / -maxdepth 1 -mindepth 1)
 BWRAP_ARGS+=(--dir /nix)
 BWRAP_ARGS+=(--bind "$NIX_HOST_PATH" /nix)
 
-exec bwrap "${BWRAP_ARGS[@]}" "$@"
+# Use sudo mount launcher if enabled, otherwise use bwrap
+if [ "${SUDO_MOUNT_ENABLED:-0}" -eq 1 ] && [ -x "$SCRIPT_DIR/launch_with_nsenter.sh" ]; then
+  exec "$SCRIPT_DIR/launch_with_nsenter.sh" "$@"
+else
+  exec bwrap "${BWRAP_ARGS[@]}" "$@"
+fi
