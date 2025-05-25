@@ -4,6 +4,12 @@ SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)"
 SHELFFILES="$(CDPATH='' cd -- "$SCRIPT_DIR/.." && pwd)"
 export SHELFFILES="$SHELFFILES"
 
+# Load shelffiles configuration
+if [ -f "$SHELFFILES/config/shelffiles.conf" ]; then
+    # shellcheck disable=SC1091
+    . "$SHELFFILES/config/shelffiles.conf"
+fi
+
 # Check if SHELFFILES variable is set
 if [ -z "$SHELFFILES" ]; then
   echo "Error: SHELFFILES variable is not set. Please define it before sourcing this script."
