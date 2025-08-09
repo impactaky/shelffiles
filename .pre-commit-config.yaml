@@ -14,7 +14,7 @@ repos:
 - repo: https://github.com/AleksaC/hadolint-py
   rev: v2.12.1b3
   hooks:
-    - id: hadolint
+  - id: hadolint
 - repo: https://github.com/nix-community/nixpkgs-fmt
   rev: v1.3.0
   hooks:
