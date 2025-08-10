@@ -14,5 +14,17 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+        with:
+          logger: pretty
+          extra-conf: |
+            experimental-features = nix-command flakes
+
+      - name: Install nixfmt-tree
+        run: |
+          nix-env -iA nixpkgs.nixfmt-tree
+          echo "$HOME/.nix-profile/bin" >> $GITHUB_PATH
+
       - name: Run pre-commit hooks
         uses: pre-commit/action@v3.0.1
