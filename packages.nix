@@ -1,2 +1,1 @@
-pkgs: nix-ai-tools: with pkgs; [
-]
+pkgs: _: with pkgs; [ ]
