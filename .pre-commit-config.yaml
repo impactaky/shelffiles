@@ -17,9 +17,9 @@ repos:
   - id: hadolint
 - repo: local
   hooks:
-  - id: nixfmt-tree
-    name: nixfmt-tree
-    entry: treefmt --ci
+  - id: nixfmt
+    name: nixfmt
+    entry: nixfmt -c
     language: system
-    pass_filenames: false
+    pass_filenames: true
     files: \.nix$
