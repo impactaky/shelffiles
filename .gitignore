@@ -13,6 +13,5 @@ flake.lock
 
 # User-specific environment settings
 user_env.sh
-generated_env.sh
 
 /nix
