@@ -13,12 +13,43 @@
         let
           packagesPath = ./packages.nix;
         in import packagesPath pkgs;
-    in {
-      packages = nixpkgs.lib.genAttrs systems (system: {
-        default = nixpkgs.legacyPackages.${system}.buildEnv {
-          name = "shelffiles-env";
-          paths = loadPackages system nixpkgs.legacyPackages.${system};
+
+      # Generate environment setup script
+      generateEnv = pkgs: packages:
+        let
+          # Extract package names from the package list
+          packageNames = map (pkg: pkg.pname or pkg.name) packages;
+          packageList = builtins.concatStringsSep " " packageNames;
+        in
+        pkgs.stdenv.mkDerivation {
+          name = "shelffiles-env-generator";
+          src = ./.;
+
+          buildPhase = ''
+            # Create output directory
+            mkdir -p $out/share/shelffiles
+
+            # Run the generate_env.sh script with package names
+            sh ./generate_env.sh $out/share/shelffiles/generated_env.sh ${packageList}
+          '';
+
+          installPhase = ''
+            # The script already creates files in the correct location
+            true
+          '';
         };
-      });
+    in {
+      packages = nixpkgs.lib.genAttrs systems (system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+          packages = loadPackages system pkgs;
+          generatedEnv = generateEnv pkgs packages;
+        in {
+          default = pkgs.buildEnv {
+            name = "shelffiles-env";
+            paths = packages ++ [ generatedEnv ];
+          };
+        }
+      );
     };
 }
