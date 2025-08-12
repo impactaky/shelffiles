@@ -14,4 +14,12 @@ repos:
 - repo: https://github.com/AleksaC/hadolint-py
   rev: v2.12.1b3
   hooks:
-    - id: hadolint
+  - id: hadolint
+- repo: local
+  hooks:
+  - id: nixfmt
+    name: nixfmt
+    entry: nixfmt -c
+    language: system
+    pass_filenames: true
+    files: \.nix$

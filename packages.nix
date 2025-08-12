@@ -1,4 +1,4 @@
-pkgs: with pkgs; [
+pkgs: _: with pkgs; [
   _1password-cli
   argc
   atuin
