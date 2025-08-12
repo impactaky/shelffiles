@@ -2,17 +2,25 @@
   description = "Portable environment configuration";
 
   inputs.nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+  inputs.nix-ai-tools.url = "github:numtide/nix-ai-tools";
 
-  outputs = { self, nixpkgs, }:
+  outputs =
+    { nixpkgs, nix-ai-tools, ... }:
     let
-      systems =
-        [ "aarch64-linux" "x86_64-linux" "aarch64-darwin" "x86_64-darwin" ];
+      systems = [
+        "aarch64-linux"
+        "x86_64-linux"
+        "aarch64-darwin"
+        "x86_64-darwin"
+      ];
 
       # Load user packages or use default packages if user packages don't exist
-      loadPackages = system: pkgs:
+      loadPackages =
+        _: pkgs: nix-ai-tools:
         let
           packagesPath = ./packages.nix;
-        in import packagesPath pkgs;
+        in
+        import packagesPath pkgs nix-ai-tools;
 
       # Generate environment setup script
       generateEnv = pkgs: packages:
@@ -42,7 +50,7 @@
       packages = nixpkgs.lib.genAttrs systems (system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
-          packages = loadPackages system pkgs;
+          packages = loadPackages system pkgs nix-ai-tools.packages.${system};
           generatedEnv = generateEnv pkgs packages;
         in {
           default = pkgs.buildEnv {

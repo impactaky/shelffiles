@@ -1,2 +1,1 @@
-pkgs: with pkgs; [
-]
+pkgs: _: with pkgs; [ ]

@@ -14,5 +14,9 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
       - name: Run pre-commit hooks
-        uses: pre-commit/action@v3.0.1
+        run: |
+          nix-shell -p pre-commit nixfmt --run "pre-commit run --all-files"
