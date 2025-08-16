@@ -23,7 +23,8 @@
         import packagesPath pkgs nix-ai-tools;
 
       # Generate environment setup script
-      generateEnv = pkgs: packages:
+      generateEnv =
+        pkgs: packages:
         let
           # Extract package names from the package list
           packageNames = map (pkg: pkg.pname or pkg.name) packages;
@@ -38,7 +39,7 @@
             mkdir -p $out/share/shelffiles
 
             # Run the generate_env.sh script with package names
-            sh ./generate_env.sh $out/share/shelffiles/generated_env.sh ${packageList}
+            sh ./shelffiles/generate_env.sh $out/share/shelffiles/generated_env.sh ${packageList}
           '';
 
           installPhase = ''
@@ -46,13 +47,16 @@
             true
           '';
         };
-    in {
-      packages = nixpkgs.lib.genAttrs systems (system:
+    in
+    {
+      packages = nixpkgs.lib.genAttrs systems (
+        system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
           packages = loadPackages system pkgs nix-ai-tools.packages.${system};
           generatedEnv = generateEnv pkgs packages;
-        in {
+        in
+        {
           default = pkgs.buildEnv {
             name = "shelffiles-env";
             paths = packages ++ [ generatedEnv ];
