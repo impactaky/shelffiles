@@ -31,17 +31,17 @@ EOF
 
 # Process each package
 for package_name in $PACKAGES; do
-    env_file="$SCRIPT_DIR/packages/${package_name}.env"
+    env_file="$SCRIPT_DIR/packages/${package_name}.sh"
 
     if [ -f "$env_file" ]; then
         {
-            echo "# From ${package_name}.env"
+            echo "# From ${package_name}.sh"
             cat "$env_file"
             echo ""
         } >> "$OUTPUT"
     else
         {
-            echo "# Package ${package_name}: no .env file found"
+            echo "# Package ${package_name}: no .sh file found"
             echo ""
         } >> "$OUTPUT"
     fi
