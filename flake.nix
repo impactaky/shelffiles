@@ -64,8 +64,8 @@
             # Create output directory
             mkdir -p $out/share/shelffiles
 
-            # Run the generate_env.sh script with package names
-            sh ./shelffiles/generate_env.sh $out/share/shelffiles/generated_env.sh ${packageList}
+            # Run the generate_env.sh script with package names via stdin
+            echo "${packageList}" | sh ./shelffiles/generate_env.sh $out/share/shelffiles/generated_env.sh
           '';
 
           installPhase = ''
