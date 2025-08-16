@@ -76,7 +76,7 @@ _argc_usage() {
     cat <<-'EOF'
 Setup development environment with Nix
 
-USAGE: tmp [OPTIONS] [NIX-ARGS]...
+USAGE: setup.sh [OPTIONS] [NIX-ARGS]...
 
 ARGS:
   [NIX-ARGS]...  Additional arguments to pass to nix build
@@ -91,7 +91,7 @@ EOF
 }
 
 _argc_version() {
-    echo tmp 0.0.0
+    echo setup.sh 0.0.0
     exit
 }
 
