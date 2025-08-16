@@ -26,8 +26,34 @@
       generateEnv =
         pkgs: packages:
         let
-          # Extract package names from the package list
-          packageNames = map (pkg: pkg.pname or pkg.name) packages;
+          # Recursively collect all runtime dependencies
+          collectDeps =
+            pkg:
+            let
+              deps = pkg.propagatedBuildInputs or [ ] ++ pkg.buildInputs or [ ];
+              allDeps = builtins.concatMap collectDeps deps;
+            in
+            [ pkg ] ++ allDeps;
+
+          # Get all packages including their dependencies
+          allPackages = builtins.concatMap collectDeps packages;
+
+          # Function to extract unique packages based on their derivation name
+          uniquePackages =
+            let
+              # Create a set of package names we've seen
+              uniqueByName = builtins.foldl' (
+                acc: pkg:
+                let
+                  name = pkg.pname or pkg.name;
+                in
+                if builtins.hasAttr name acc then acc else acc // { ${name} = pkg; }
+              ) { } allPackages;
+            in
+            builtins.attrValues uniqueByName;
+
+          # Extract package names from the unique package list
+          packageNames = map (pkg: pkg.pname or pkg.name) uniquePackages;
           packageList = builtins.concatStringsSep " " packageNames;
         in
         pkgs.stdenv.mkDerivation {
