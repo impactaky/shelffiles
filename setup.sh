@@ -3,7 +3,7 @@
 # @describe Setup development environment with Nix
 # @flag --no-root     Use nix-portable instead of root installation
 # @flag --sudo-mount  Use sudo with nsenter/mount for /nix access
-# @arg nix_args~     Additional arguments to pass to nix build
+# @arg nix_args~      Additional arguments to pass to nix build
 
 set -eu
 
