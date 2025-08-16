@@ -31,7 +31,7 @@ EOF
 
 # Process each package
 for package_name in $PACKAGES; do
-    env_file="$SCRIPT_DIR/package_env/${package_name}.env"
+    env_file="$SCRIPT_DIR/packages/${package_name}.env"
 
     if [ -f "$env_file" ]; then
         {

@@ -4,8 +4,7 @@
 # Exception: Files needed for the build
 !flake.nix
 !packages.nix
-!generate_env.sh
-!package_env/
+!shleffiles/
 !entrypoint/
 !test/
 !utils/
