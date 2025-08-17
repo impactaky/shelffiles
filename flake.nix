@@ -33,7 +33,7 @@
               [ ]
             else
               let
-                deps = (pkg.propagatedBuildInputs or [ ]) ++ (pkg.buildInputs or [ ]);
+                deps = pkg.propagatedBuildInputs or [ ] ++ pkg.buildInputs or [ ];
                 allDeps = builtins.concatMap collectDeps deps;
               in
               [ pkg ] ++ allDeps;
@@ -53,7 +53,7 @@
                   let
                     name = pkg.pname or pkg.name;
                   in
-                  if builtins.hasAttr name acc then acc else acc // { "${name}" = pkg; }
+                  if builtins.hasAttr name acc then acc else acc // { ${name} = pkg; }
               ) { } allPackages;
             in
             builtins.attrValues uniqueByName;
