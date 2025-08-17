@@ -30,8 +30,8 @@ EOF
 
 # Process each package
 for package_name in $PACKAGES; do
-    generalized_pacakge_name="$(echo "$package_name" | sed -e "s/^nodejs_[0-9]\+$/nodejs/")"
-    env_file="$SCRIPT_DIR/packages/${generalized_pacakge_name}.sh"
+    generalized_package_name=$(printf '%s' "$package_name" | sed -e 's/^nodejs_[0-9][0-9]*$/nodejs/')
+    env_file="$SCRIPT_DIR/packages/${generalized_package_name}.sh"
 
     if [ -f "$env_file" ]; then
         {
