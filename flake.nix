@@ -29,11 +29,14 @@
           # Recursively collect all runtime dependencies
           collectDeps =
             pkg:
-            let
-              deps = pkg.propagatedBuildInputs or [ ] ++ pkg.buildInputs or [ ];
-              allDeps = builtins.concatMap collectDeps deps;
-            in
-            [ pkg ] ++ allDeps;
+            if pkg == null then
+              [ ]
+            else
+              let
+                deps = pkg.propagatedBuildInputs or [ ] ++ pkg.buildInputs or [ ];
+                allDeps = builtins.concatMap collectDeps deps;
+              in
+              [ pkg ] ++ allDeps;
 
           # Get all packages including their dependencies
           allPackages = builtins.concatMap collectDeps packages;
@@ -44,16 +47,21 @@
               # Create a set of package names we've seen
               uniqueByName = builtins.foldl' (
                 acc: pkg:
-                let
-                  name = pkg.pname or pkg.name;
-                in
-                if builtins.hasAttr name acc then acc else acc // { ${name} = pkg; }
+                if pkg == null then
+                  acc
+                else
+                  let
+                    name = pkg.pname or pkg.name;
+                  in
+                  if builtins.hasAttr name acc then acc else acc // { ${name} = pkg; }
               ) { } allPackages;
             in
             builtins.attrValues uniqueByName;
 
           # Extract package names from the unique package list
-          packageNames = map (pkg: pkg.pname or pkg.name) uniquePackages;
+          packageNames = builtins.filter (name: name != "") (
+            map (pkg: if pkg == null then "" else pkg.pname or pkg.name) uniquePackages
+          );
           packageList = builtins.concatStringsSep " " packageNames;
         in
         pkgs.stdenv.mkDerivation {
@@ -79,7 +87,7 @@
         system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
-          packages = loadPackages system pkgs nix-ai-tools.packages.${system};
+          packages = loadPackages system pkgs (nix-ai-tools.packages.${system} or { });
           generatedEnv = generateEnv pkgs packages;
         in
         {
