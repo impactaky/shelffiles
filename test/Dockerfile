@@ -8,7 +8,7 @@ RUN mkdir -p /etc/nix && \
 WORKDIR /app
 
 # Copy only the files needed for nix build
-COPY flake.nix .
+COPY . .
 COPY test/packages.nix ./packages.nix
 
 # Create necessary directories and build

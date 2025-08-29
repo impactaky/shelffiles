@@ -6,9 +6,6 @@ SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)"
 # Source the environment setup
 . "$SCRIPT_DIR/env.sh"
 
-mkdir -p "$XDG_STATE_HOME"/bash
-export HISTFILE="$XDG_STATE_HOME"/bash/history
-
 # Execute bash
 if [ ! -e "$SHELFFILES/result" ] && [ ! -e "$SHELFFILES/result_docker" ] ; then
     exec "$SCRIPT_DIR/launch_in_bwrap.sh" bash --init-file "$XDG_CONFIG_HOME"/bash/.bashrc "$@"

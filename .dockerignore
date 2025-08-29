@@ -1,0 +1,11 @@
+# Ignore everything by default
+**/*
+
+# Exception: Files needed for the build
+!flake.nix
+!packages.nix
+!shelffiles/
+!entrypoint/
+!test/
+!utils/
+!config/
