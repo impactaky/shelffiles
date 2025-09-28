@@ -233,8 +233,6 @@ else
     if ! command -v nix &> /dev/null; then
         echo "Installing Nix..."
         sh <(curl -L https://nixos.org/nix/install)
-        # shellcheck disable=SC1091
-        . "$HOME"/.nix-profile/etc/profile.d/nix.sh
     fi
 fi
 
