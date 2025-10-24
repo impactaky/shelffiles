@@ -7,18 +7,17 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # Check if we have the required arguments
-if [ $# -lt 2 ]; then
-    echo "Usage: $0 <output_path> <package1> [package2] [package3] ..."
-    echo "Example: $0 /tmp/env.sh npm starship claude"
+if [ $# -ne 1 ]; then
+    echo "Usage: echo \"package1 package2 ...\" | $0 <output_path>"
+    echo "Example: echo \"npm starship claude\" | $0 /tmp/env.sh"
     exit 1
 fi
 
 # Output file path
 OUTPUT="$1"
-shift
 
-# Remaining arguments are package names
-PACKAGES="$*"
+# Read package names from stdin
+PACKAGES="$(cat)"
 
 # Create output directory if needed
 mkdir -p "$(dirname "$OUTPUT")"
@@ -31,11 +30,12 @@ EOF
 
 # Process each package
 for package_name in $PACKAGES; do
-    env_file="$SCRIPT_DIR/packages/${package_name}.sh"
+    generalized_pacakge_name="$(echo "$package_name" | sed -e "s/^nodejs_[0-9]\+$/nodejs/")"
+    env_file="$SCRIPT_DIR/packages/${generalized_pacakge_name}.sh"
 
     if [ -f "$env_file" ]; then
         {
-            echo "# From ${package_name}.sh"
+            echo "# Package ${package_name}"
             cat "$env_file"
             echo ""
         } >> "$OUTPUT"
@@ -50,4 +50,4 @@ done
 # Make executable
 chmod +x "$OUTPUT"
 
-echo "Generated $OUTPUT with environment for: $PACKAGES"
+echo "Generated $OUTPUT with environment for:$(echo "$PACKAGES" | tr '\n' ' ')"
