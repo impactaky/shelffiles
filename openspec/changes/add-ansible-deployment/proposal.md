@@ -27,9 +27,8 @@ Shelffiles currently requires manual installation steps on target machines. To e
   - deployment/playbook.yml (main Ansible playbook with all tasks)
   - deployment/roles/nix-portable/ (nix-portable installation role)
   - deployment/roles/shelffiles/ (shelffiles deployment role)
-  - deployment/inventory_template (inventory file template)
   - deployment/ansible.cfg (Ansible configuration)
-  - deployment/README.md (deployment documentation)
+  - deployment/README.md (deployment documentation with inventory examples)
   - deployment/files/ (directory for cached nix-portable binaries, git-ignored)
 - No breaking changes to existing functionality
 - No shell scripts added - all logic in Ansible tasks

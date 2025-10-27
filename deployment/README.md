@@ -49,16 +49,17 @@ ansible-playbook -i "192.168.1.100," deployment/playbook.yml
 Create an inventory file:
 
 ```bash
-# Copy the example inventory
-cp deployment/inventory.example deployment/inventory
+# Create inventory file
+cat > deployment/inventory <<'EOF'
+[shelffiles_targets]
+server1 ansible_host=192.168.1.100 ansible_user=deploy
+server2 ansible_host=192.168.1.101 ansible_user=deploy
 
-# Edit with your hosts
-vim deployment/inventory
-```
+[shelffiles_targets:vars]
+ansible_python_interpreter=/usr/bin/python3
+EOF
 
-Deploy to all hosts:
-
-```bash
+# Deploy to all hosts
 cd /path/to/shelffiles
 ansible-playbook deployment/playbook.yml
 ```
@@ -97,19 +98,22 @@ Store password securely:
 
 ```bash
 # Create encrypted vault file
-ansible-vault create deployment/vault.yml
+ansible-vault create group_vars/all/vault.yml
 
 # Add password in editor:
-# ansible_password: your_password_here
+# vault_password: your_password_here
+
+# Reference in inventory file:
+cat > deployment/inventory <<'EOF'
+[shelffiles_targets]
+myserver ansible_host=192.168.1.100 ansible_user=deploy ansible_password="{{ vault_password }}"
+
+[shelffiles_targets:vars]
+ansible_python_interpreter=/usr/bin/python3
+EOF
 
 # Deploy with vault
 ansible-playbook -i deployment/inventory deployment/playbook.yml --ask-vault-pass
-```
-
-Reference in inventory:
-```ini
-[shelffiles_targets]
-myserver ansible_host=192.168.1.100 ansible_user=deploy ansible_password="{{ vault_password }}"
 ```
 
 ## Deployment Process
@@ -376,7 +380,6 @@ ansible-playbook -i "target," deployment/playbook.yml
 deployment/
 ├── playbook.yml              # Main playbook
 ├── ansible.cfg               # Ansible configuration
-├── inventory.example         # Inventory template
 ├── README.md                 # This file
 ├── files/                    # Binary cache (git-ignored)
 │   ├── nix-portable-x86_64   # Downloaded on first run
