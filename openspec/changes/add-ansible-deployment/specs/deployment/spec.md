@@ -29,20 +29,35 @@ The deployment system SHALL operate with minimal dependencies on the target host
 - **AND** does not have curl or wget installed
 - **THEN** the deployment completes successfully by transferring binaries from control machine
 
+### Requirement: Binary Acquisition via Ansible Tasks
+The deployment system SHALL use Ansible tasks to download nix-portable binaries to the control machine and transfer them to targets, without requiring external shell scripts.
+
+#### Scenario: Automatic binary download on first run
+- **WHEN** nix-portable binaries do not exist in deployment/files/
+- **THEN** Ansible get_url task downloads them from GitHub to control machine
+- **AND** downloads both x86_64 and aarch64 versions
+- **AND** uses creates: parameter for idempotency
+
+#### Scenario: Using cached binaries
+- **WHEN** nix-portable binaries already exist in deployment/files/
+- **THEN** Ansible skips download step
+- **AND** uses cached binaries for deployment
+- **AND** supports offline/air-gapped deployment
+
 ### Requirement: Nix-portable Binary Transfer
 The deployment system SHALL transfer the appropriate nix-portable binary from the control machine to the target host based on target architecture.
 
 #### Scenario: x86_64 target deployment
 - **WHEN** target host architecture is x86_64
-- **THEN** the x86_64 nix-portable binary is copied from deployment/files/
-- **AND** executable permissions are set
-- **AND** binary is verified with `./nix-portable nix --version`
+- **THEN** the x86_64 nix-portable binary is copied from deployment/files/ using Ansible copy module
+- **AND** executable permissions are set using Ansible file module
+- **AND** binary is verified with command module executing `./nix-portable nix --version`
 
 #### Scenario: aarch64 target deployment
 - **WHEN** target host architecture is aarch64 (ARM64)
-- **THEN** the aarch64 nix-portable binary is copied from deployment/files/
-- **AND** executable permissions are set
-- **AND** binary is verified
+- **THEN** the aarch64 nix-portable binary is copied from deployment/files/ using Ansible copy module
+- **AND** executable permissions are set using Ansible file module
+- **AND** binary is verified with command module
 
 #### Scenario: Existing nix-portable installation
 - **WHEN** nix-portable is already installed on target
@@ -54,15 +69,15 @@ The deployment system SHALL synchronize the shelffiles repository from the contr
 
 #### Scenario: Initial repository deployment
 - **WHEN** shelffiles repository does not exist on target
-- **THEN** the entire repository is copied to ~/shelffiles/
-- **AND** git-ignored files (cache/, result/, /nix) are excluded
-- **AND** setup.sh is executed with --no-root flag
+- **THEN** the entire repository is copied to ~/shelffiles/ using Ansible synchronize module
+- **AND** git-ignored files (cache/, result/, /nix, deployment/) are excluded
+- **AND** setup.sh is executed with --no-root flag using Ansible command module
 
 #### Scenario: Repository update
 - **WHEN** shelffiles repository already exists on target
-- **THEN** only changed files are synchronized
+- **THEN** only changed files are synchronized using Ansible synchronize module
 - **AND** local modifications in config/ are preserved
-- **AND** build is re-run if flake.nix or packages.nix changed
+- **AND** build is re-run using command module if flake.nix or packages.nix changed
 
 ### Requirement: Authentication Methods
 The deployment system SHALL support multiple authentication methods for connecting to target hosts.
@@ -117,8 +132,9 @@ The deployment system SHALL provide comprehensive documentation for setup and us
 
 #### Scenario: First-time user setup
 - **WHEN** user reads deployment/README.md
-- **THEN** instructions explain how to download nix-portable binaries
+- **THEN** instructions explain that binaries are downloaded automatically by Ansible
 - **AND** provide example commands for single-host deployment
+- **AND** document requirement to run from repository root
 - **AND** document all authentication methods with security recommendations
 
 #### Scenario: Troubleshooting connectivity issues
@@ -132,7 +148,8 @@ The deployment system SHALL support air-gapped deployments where target hosts ha
 
 #### Scenario: Deployment without target internet access
 - **WHEN** target host cannot reach external networks
-- **AND** control machine has pre-downloaded nix-portable binaries
-- **AND** control machine has complete shelffiles repository
+- **AND** control machine downloads binaries via Ansible get_url on first run
+- **AND** binaries are cached in deployment/files/ directory
 - **THEN** deployment completes successfully using only SSH connection
 - **AND** no external network requests are made from target
+- **AND** subsequent deployments use cached binaries

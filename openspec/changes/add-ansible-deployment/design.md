@@ -39,21 +39,48 @@ Shelffiles requires Nix (or nix-portable) to be installed on target systems. Man
 - Using `fetch` from GitHub on target → requires HTTPS connectivity (rejected)
 - Base64 encoding binary in playbook → inefficient, error-prone (rejected)
 
-### 2. Nix-portable Binary Source
-**Decision:** Pre-download nix-portable to control machine, transfer to target
+### 2. Nix-portable Binary Acquisition
+**Decision:** Use Ansible tasks to download nix-portable from GitHub to control machine, then transfer to target
 
 **Rationale:**
 - Target may not have HTTPS or any HTTP client
 - Control machine likely has internet access
 - Allows verification of binary before deployment
-- Supports air-gapped deployments
+- Supports air-gapped deployments (binaries cached on control machine)
+- Pure Ansible approach - no shell scripts needed
 
 **Implementation:**
-- Store binaries in `deployment/files/nix-portable-{x86_64,aarch64}`
-- Provide download script: `deployment/scripts/download-nix-portable.sh`
-- Use `copy` module with `src: deployment/files/nix-portable-{{ target_arch }}`
+- Use `get_url` task to download from GitHub releases to `deployment/files/` on control machine
+  - Runs on `localhost` (control machine) with `delegate_to: localhost`
+  - Downloads `nix-portable-x86_64` and `nix-portable-aarch64`
+  - Uses `creates:` parameter for idempotency (skip if already exists)
+- Use `copy` module to transfer appropriate binary to target
+  - `src: deployment/files/nix-portable-{{ ansible_architecture }}`
+  - `dest: ~/shelffiles/nix-portable`
+  - `mode: '0755'`
+- URL format: `https://github.com/DavHau/nix-portable/releases/latest/download/nix-portable-{{ arch }}`
 
-### 3. Password Authentication Strategy
+### 3. Repository Transfer to Control Machine
+**Decision:** Use Ansible tasks to prepare repository on control machine before transferring to target
+
+**Rationale:**
+- Avoid assumptions about where playbook is run from
+- Allow running playbook from any directory
+- Support packaging deployment as standalone directory
+- Pure Ansible approach
+
+**Implementation:**
+- Option A: Playbook assumes it's run from repository root (simpler)
+  - Use `synchronize` with `src: "{{ playbook_dir }}/.." dest: ~/shelffiles/`
+  - Excludes: `.git/`, `cache/`, `result/`, `/nix`, `deployment/`
+- Option B: Clone repository on control machine first (more flexible)
+  - Use `git` module with `delegate_to: localhost` to clone/update local copy
+  - Then synchronize from local copy to target
+  - Allows deployment directory to be independent
+
+**Chosen:** Option A for simplicity, document requirement to run from repo root
+
+### 4. Password Authentication Strategy
 **Decision:** Support multiple methods with documentation preference order
 
 **Methods (in order of preference):**
@@ -68,20 +95,23 @@ Shelffiles requires Nix (or nix-portable) to be installed on target systems. Man
 - Interactive password for quick testing
 - Plain password never committed to version control
 
-### 4. Repository Transfer Method
-**Decision:** Use `synchronize` module with `--exclude` patterns for git-ignored files
+### 5. Setup Execution Method
+**Decision:** Use Ansible `command` module to execute setup.sh, not shell scripts
 
 **Rationale:**
-- Efficient for large repository and updates
-- Preserves permissions and timestamps
-- Built-in exclude support for `.git/`, `cache/`, `result/`, etc.
-- Idempotent by default
+- All deployment logic in Ansible tasks
+- No separate shell scripts to maintain
+- Better error handling and logging through Ansible
+- Idempotency controlled by Ansible facts
 
-**Fallback plan:**
-- If rsync unavailable: use `copy` with `src: ./ dest: ~/shelffiles/`
-- Document rsync as soft dependency
+**Implementation:**
+- Use `stat` module to check if nix-portable already installed
+- Use `command` module: `cmd: ./setup.sh --no-root`
+  - `chdir: ~/shelffiles`
+  - `creates: ~/shelffiles/result` for idempotency
+- Use `command` module for verification: `./nix-portable nix --version`
 
-### 5. Inventory Management
+### 6. Inventory Management
 **Decision:** Provide template inventory file, support ad-hoc `-i <ip>,` usage
 
 **Rationale:**
@@ -98,7 +128,7 @@ target1 ansible_host=192.168.1.100 ansible_user=myuser
 ansible_python_interpreter=/usr/bin/python3
 ```
 
-### 6. Target System Requirements Validation
+### 7. Target System Requirements Validation
 **Decision:** Add pre-task validation for minimal dependencies
 
 **Checks:**
@@ -134,26 +164,37 @@ Control Machine                           Target Machine
 ### Playbook Flow
 
 ```
-1. Pre-flight Checks
-   ├─ Validate SSH connectivity
-   ├─ Check target architecture
-   └─ Verify minimal commands available
+1. Pre-flight Checks (Ansible tasks on localhost and target)
+   ├─ Gather facts from target (ansible_architecture, etc.)
+   ├─ Validate target architecture (x86_64 or aarch64)
+   ├─ Check Python interpreter exists
+   └─ Verify SSH connectivity
 
-2. Nix-portable Deployment (role: nix-portable)
-   ├─ Check existing installation
-   ├─ Copy binary for target architecture
-   ├─ Set executable permissions
-   └─ Verify with `./nix-portable nix --version`
+2. Binary Acquisition (Ansible tasks on localhost)
+   ├─ Create deployment/files/ directory on control machine
+   ├─ Download nix-portable binaries via get_url module (delegate_to: localhost)
+   │  ├─ https://github.com/DavHau/nix-portable/releases/latest/download/nix-portable-x86_64
+   │  └─ https://github.com/DavHau/nix-portable/releases/latest/download/nix-portable-aarch64
+   └─ Use creates: parameter for idempotency
 
-3. Shelffiles Deployment (role: shelffiles)
-   ├─ Synchronize repository files
-   ├─ Run setup.sh --no-root
-   ├─ Configure XDG directories
-   └─ Optional: Add shell integration
+3. Nix-portable Deployment (Ansible tasks on target)
+   ├─ Check if nix-portable already exists (stat module)
+   ├─ Copy appropriate binary via copy module
+   │  └─ src: deployment/files/nix-portable-{{ ansible_architecture }}
+   ├─ Set executable permissions via file module
+   └─ Verify installation via command module
 
-4. Post-deployment Verification
-   ├─ Test nix build
-   └─ Report installation paths
+4. Shelffiles Deployment (Ansible tasks on target)
+   ├─ Synchronize repository via synchronize module
+   │  └─ Excludes: .git/, cache/, result/, /nix, deployment/
+   ├─ Execute setup.sh via command module
+   │  └─ cmd: ./setup.sh --no-root, chdir: ~/shelffiles
+   └─ Verify build via command module
+
+5. Post-deployment Verification (Ansible tasks on target)
+   ├─ Test nix build via command module
+   ├─ Register installation paths
+   └─ Display summary via debug module
 ```
 
 ## Risks / Trade-offs
@@ -193,18 +234,19 @@ Control Machine                           Target Machine
 ## Migration Plan
 
 ### Fresh Installation
-1. Prepare control machine:
+1. Run playbook (binaries downloaded automatically by Ansible):
    ```bash
-   cd deployment
-   ./scripts/download-nix-portable.sh
+   cd /path/to/shelffiles
+   ansible-playbook -i <target_ip>, deployment/playbook.yml --ask-pass
    ```
 
-2. Deploy to target:
-   ```bash
-   ansible-playbook -i <target_ip>, playbook.yml --ask-pass
-   ```
+   The playbook will:
+   - Download nix-portable binaries to `deployment/files/` on first run
+   - Transfer appropriate binary to target
+   - Synchronize shelffiles repository
+   - Execute setup.sh on target
 
-3. SSH to target and verify:
+2. SSH to target and verify (optional - playbook does this):
    ```bash
    ssh user@<target_ip>
    cd ~/shelffiles
