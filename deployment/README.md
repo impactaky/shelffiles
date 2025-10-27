@@ -2,339 +2,127 @@
 
 Automated deployment of shelffiles with nix-portable to a remote server using Ansible.
 
-## Features
-
-- **Single host deployment**: Deploy to a server by specifying its IP address
-- **Minimal target dependencies**: Only requires SSH, Python, and basic POSIX commands (mkdir, chmod, cp, tar)
-- **No HTTPS on target**: Binaries downloaded to control machine, then transferred via SSH
-- **Pure Ansible**: No shell scripts - all logic in Ansible tasks
-- **Idempotent**: Safe to re-run, only applies necessary changes
-- **Multi-architecture**: Supports x86_64 and aarch64 (ARM64)
-- **Offline-friendly**: Binaries cached on control machine after first download
-
 ## Requirements
 
-### Control Machine (where you run Ansible)
-- Ansible 2.9 or later
-- Internet access (first run only, to download nix-portable binaries)
+**Control Machine:**
+- Ansible 2.9+
+- Internet access (first run only)
 - This repository cloned locally
 
-### Target Machine (where shelffiles will be deployed)
-- SSH server running
-- Python 3 (for Ansible modules)
-- Basic POSIX commands: sh, mkdir, chmod, cp, tar
-- Write access to home directory (no sudo required)
+**Target Machine:**
+- SSH server
+- Python 3
+- Basic POSIX commands: sh, mkdir, chmod, cp, tar, rsync
 - Supported architecture: x86_64 or aarch64
 
-## Quick Start
+## Usage
 
-Deploy to a single host by IP address:
+Deploy to a host by IP address:
 
 ```bash
-# Navigate to repository root
 cd /path/to/shelffiles
 
-# Deploy with interactive password prompt
-ansible-playbook -i "192.168.1.100," deployment/playbook.yml --ask-pass
-
-# Or with SSH key (no password prompt)
+# With SSH key
 ansible-playbook -i "192.168.1.100," deployment/playbook.yml
 
-# Or specify user
-ansible-playbook -i "192.168.1.100," deployment/playbook.yml -u myuser --ask-pass
-```
-
-**Note**: The comma after the IP address is required for Ansible ad-hoc inventory.
-
-## Authentication Methods
-
-### SSH Key Authentication (Recommended)
-
-Most secure and convenient. Set up SSH key on target:
-
-```bash
-ssh-copy-id user@192.168.1.100
-ansible-playbook -i "192.168.1.100," deployment/playbook.yml
-```
-
-### Interactive Password
-
-Prompt for password at runtime:
-
-```bash
+# With password
 ansible-playbook -i "192.168.1.100," deployment/playbook.yml --ask-pass
+
+# Specify user
+ansible-playbook -i "192.168.1.100," deployment/playbook.yml -u username --ask-pass
 ```
 
-Requires `sshpass` to be installed on control machine:
-```bash
-# Ubuntu/Debian
-sudo apt install sshpass
+**Note**: The comma after the IP is required by Ansible.
 
-# macOS
-brew install hudochenkov/sshpass/sshpass
-```
+## How It Works
 
-## Deployment Process
+1. **Binary Acquisition** (control machine):
+   - Downloads nix-portable binaries from GitHub to `deployment/files/`
+   - Cached for offline use after first run
 
-The playbook performs these steps automatically:
+2. **Pre-flight Checks** (target):
+   - Validates architecture (x86_64 or aarch64)
+   - Checks Python interpreter
 
-```
-1. Pre-flight Checks
-   ├─ Gather facts from target (architecture, OS)
-   ├─ Validate architecture (x86_64 or aarch64)
-   └─ Check Python interpreter
+3. **Nix-portable Installation** (target):
+   - Transfers binary matching target architecture
+   - Skipped if already installed
 
-2. Binary Acquisition (on control machine)
-   ├─ Create deployment/files/ directory
-   ├─ Download nix-portable-x86_64 from GitHub
-   ├─ Download nix-portable-aarch64 from GitHub
-   └─ Cache binaries for future deployments
+4. **Shelffiles Deployment** (target):
+   - Synchronizes repository (excludes: .git/, cache/, result/, /nix, deployment/)
+   - Runs `./setup.sh --no-root`
+   - Creates XDG directories
 
-3. Nix-portable Installation (on target)
-   ├─ Check if already installed
-   ├─ Transfer appropriate binary (based on architecture)
-   ├─ Set executable permissions
-   └─ Verify installation
+5. **Verification**:
+   - Tests nix command
+   - Displays installation summary
 
-4. Shelffiles Deployment (on target)
-   ├─ Synchronize repository from control machine
-   ├─ Exclude: .git/, cache/, result/, /nix, deployment/
-   ├─ Run setup.sh --no-root
-   └─ Verify build succeeded
+## Configuration
 
-5. Post-Deployment
-   ├─ Test nix command
-   ├─ Create XDG directories (cache/, share/, state/)
-   └─ Display summary
-```
-
-## Configuration Options
-
-### Playbook Variables
-
-Set via `-e` flag:
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `shelffiles_home` | `~/shelffiles` | Installation directory on target |
-| `shelffiles_force_rebuild` | `false` | Force rebuild even if already built |
-| `shelffiles_create_xdg_dirs` | `true` | Create XDG directories (cache/, share/, state/) |
-| `shelffiles_setup_args` | `""` | Additional arguments for setup.sh |
-
-### Example: Custom Installation Directory
+Override defaults with `-e` flag:
 
 ```bash
-ansible-playbook -i "192.168.1.100," deployment/playbook.yml \
-  -e "shelffiles_home=/opt/shelffiles"
+# Custom installation directory
+ansible-playbook -i "IP," deployment/playbook.yml -e "shelffiles_home=/opt/shelffiles"
+
+# Force rebuild
+ansible-playbook -i "IP," deployment/playbook.yml -e "shelffiles_force_rebuild=true"
 ```
 
-### Example: Force Rebuild
+Available variables:
+- `shelffiles_home` (default: `~/shelffiles`)
+- `shelffiles_force_rebuild` (default: `false`)
+- `shelffiles_create_xdg_dirs` (default: `true`)
+- `shelffiles_setup_args` (default: `""`)
 
+## Offline Deployment
+
+After first run, binaries are cached in `deployment/files/`. Subsequent deployments work offline.
+
+To pre-cache binaries:
 ```bash
-ansible-playbook -i "192.168.1.100," deployment/playbook.yml \
-  -e "shelffiles_force_rebuild=true"
+mkdir -p deployment/files
+curl -L -o deployment/files/nix-portable-x86_64 \
+  https://github.com/DavHau/nix-portable/releases/latest/download/nix-portable-x86_64
+curl -L -o deployment/files/nix-portable-aarch64 \
+  https://github.com/DavHau/nix-portable/releases/latest/download/nix-portable-aarch64
+chmod +x deployment/files/nix-portable-*
 ```
-
-## Offline/Air-Gapped Deployment
-
-For targets without internet access:
-
-1. **First deployment** (control machine has internet):
-   ```bash
-   ansible-playbook -i "192.168.1.100," deployment/playbook.yml
-   ```
-   Binaries are downloaded to `deployment/files/` on control machine.
-
-2. **Subsequent deployments** (no internet needed):
-   - Binaries are already cached in `deployment/files/`
-   - Ansible skips download step
-   - Works completely offline
-
-3. **Pre-download binaries** (optional):
-   ```bash
-   # Manually download to cache before first deployment
-   mkdir -p deployment/files
-   curl -L -o deployment/files/nix-portable-x86_64 \
-     https://github.com/DavHau/nix-portable/releases/latest/download/nix-portable-x86_64
-   curl -L -o deployment/files/nix-portable-aarch64 \
-     https://github.com/DavHau/nix-portable/releases/latest/download/nix-portable-aarch64
-   chmod +x deployment/files/nix-portable-*
-   ```
 
 ## Verification
 
-After deployment, SSH to target and verify:
-
+After deployment:
 ```bash
 ssh user@192.168.1.100
 cd ~/shelffiles
-
-# Check nix-portable version
 ./nix-portable nix --version
-
-# Enter bash environment
 ./entrypoint/bash
-
-# List available packages
-nix search nixpkgs hello
 ```
 
 ## Troubleshooting
 
-### Error: "Unsupported architecture"
-
-**Cause**: Target architecture is not x86_64 or aarch64
-
-**Solution**: Check architecture on target:
+**Architecture error**: Target must be x86_64 or aarch64
 ```bash
-ssh user@192.168.1.100 "uname -m"
+ssh user@IP "uname -m"  # Check architecture
 ```
 
-Only x86_64 and aarch64 are supported. For other architectures, nix-portable must be built manually.
-
-### Error: "Permission denied" during SSH
-
-**Cause**: SSH authentication failed
-
-**Solutions**:
-- Verify SSH access: `ssh user@192.168.1.100`
-- Use `--ask-pass` flag for password authentication
-- Set up SSH key: `ssh-copy-id user@192.168.1.100`
-- Specify user with `-u` flag: `ansible-playbook -i "192.168.1.100," deployment/playbook.yml -u myuser`
-
-### Error: "Python interpreter not found"
-
-**Cause**: Python 3 not available on target
-
-**Solution**: Install Python on target:
+**Python not found**: Install python3 on target, or specify interpreter
 ```bash
-# Debian/Ubuntu
-sudo apt install python3
-
-# RHEL/CentOS
-sudo yum install python3
+ansible-playbook -i "IP," deployment/playbook.yml -e "ansible_python_interpreter=/usr/bin/python3"
 ```
 
-Or specify custom interpreter:
-```bash
-ansible-playbook -i "192.168.1.100," deployment/playbook.yml \
-  -e "ansible_python_interpreter=/usr/local/bin/python3"
-```
+**Verbose output**: Add `-v`, `-vv`, `-vvv`, or `-vvvv` flag
 
-### Error: "rsync not found"
-
-**Cause**: `synchronize` module requires rsync on target
-
-**Solution**: Install rsync on target:
-```bash
-# Debian/Ubuntu
-sudo apt install rsync
-
-# RHEL/CentOS/Rocky
-sudo yum install rsync
-
-# Alpine
-apk add rsync
-```
-
-### Error: "setup.sh failed"
-
-**Cause**: Build error during nix setup
-
-**Solution**: Check setup.sh output in Ansible log. Common causes:
-- Insufficient disk space (needs ~2GB for Nix store)
-- Missing system dependencies (should be minimal with nix-portable)
-- Corrupted download (re-run with `-e "shelffiles_force_rebuild=true"`)
-
-### Verbose Output
-
-Run with increased verbosity to debug:
-
-```bash
-# Level 1: Show task results
-ansible-playbook -v -i "192.168.1.100," deployment/playbook.yml
-
-# Level 2: Show task input
-ansible-playbook -vv -i "192.168.1.100," deployment/playbook.yml
-
-# Level 3: Show task execution details
-ansible-playbook -vvv -i "192.168.1.100," deployment/playbook.yml
-
-# Level 4: Show connection debugging
-ansible-playbook -vvvv -i "192.168.1.100," deployment/playbook.yml
-```
-
-### Dry Run
-
-Test without making changes:
-
-```bash
-ansible-playbook -i "192.168.1.100," deployment/playbook.yml --check
-```
-
-Note: `--check` mode has limitations with command/shell modules.
-
-## Architecture Diagram
-
-```
-Control Machine                           Target Machine (192.168.1.100)
-┌─────────────────────────┐              ┌──────────────────────┐
-│                         │              │                      │
-│ shelffiles/             │              │ ~/shelffiles/        │
-│ ├─ deployment/          │              │ ├─ nix-portable      │
-│ │  ├─ playbook.yml ─────┼─────────────►│ ├─ setup.sh          │
-│ │  ├─ roles/            │  Ansible     │ ├─ flake.nix         │
-│ │  │  ├─ nix-portable/  │    SSH       │ ├─ packages.nix      │
-│ │  │  └─ shelffiles/    │              │ ├─ entrypoint/       │
-│ │  └─ files/            │              │ ├─ result -> /nix/.. │
-│ │     ├─ nix-portable-  │  Transfer    │ ├─ cache/            │
-│ │     │  x86_64   ──────┼─────────────►│ ├─ share/            │
-│ │     └─ nix-portable-  │              │ └─ state/            │
-│ │        aarch64        │              │                      │
-│ └─ ...                  │              └──────────────────────┘
-│                         │
-│ Internet                │
-│ ├─ GitHub (first run) ──┤
-│ └─ nix-portable releases│
-└─────────────────────────┘
-```
+**Dry run**: Add `--check` flag (limited support for command tasks)
 
 ## File Structure
 
 ```
 deployment/
-├── playbook.yml              # Main playbook
-├── README.md                 # This file
-├── files/                    # Binary cache (git-ignored)
-│   ├── nix-portable-x86_64   # Downloaded on first run
-│   └── nix-portable-aarch64  # Downloaded on first run
+├── playbook.yml           # Main playbook
+├── README.md              # This file
+├── files/                 # Binary cache (git-ignored)
 └── roles/
-    ├── nix-portable/
-    │   ├── tasks/main.yml    # Installation tasks
-    │   ├── defaults/main.yml # Default variables
-    │   └── handlers/main.yml # Event handlers
-    └── shelffiles/
-        ├── tasks/main.yml    # Deployment tasks
-        └── defaults/main.yml # Default variables
+    ├── nix-portable/      # Binary installation
+    └── shelffiles/        # Repository deployment
 ```
-
-## Security Considerations
-
-1. **SSH Key Authentication**: Strongly recommended over passwords
-2. **No Sudo Required**: Deployment uses `--no-root` flag, no privilege escalation
-3. **Minimal Attack Surface**: Only SSH and Python required on target
-
-## Support
-
-For issues specific to deployment:
-- Check [Troubleshooting](#troubleshooting) section
-- Run with `-vvv` for detailed output
-- Review Ansible logs
-
-For shelffiles issues:
-- See main repository [README](../README.md)
-- Check [example configurations](../example/)
-
-## License
-
-Same as shelffiles main repository.
