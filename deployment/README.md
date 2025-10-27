@@ -1,9 +1,10 @@
 # Shelffiles Ansible Deployment
 
-Automated deployment of shelffiles with nix-portable to remote servers using Ansible.
+Automated deployment of shelffiles with nix-portable to a remote server using Ansible.
 
 ## Features
 
+- **Single host deployment**: Deploy to a server by specifying its IP address
 - **Minimal target dependencies**: Only requires SSH, Python, and basic POSIX commands (mkdir, chmod, cp, tar)
 - **No HTTPS on target**: Binaries downloaded to control machine, then transferred via SSH
 - **Pure Ansible**: No shell scripts - all logic in Ansible tasks
@@ -27,8 +28,6 @@ Automated deployment of shelffiles with nix-portable to remote servers using Ans
 
 ## Quick Start
 
-### 1. Single Host Deployment
-
 Deploy to a single host by IP address:
 
 ```bash
@@ -40,29 +39,12 @@ ansible-playbook -i "192.168.1.100," deployment/playbook.yml --ask-pass
 
 # Or with SSH key (no password prompt)
 ansible-playbook -i "192.168.1.100," deployment/playbook.yml
+
+# Or specify user
+ansible-playbook -i "192.168.1.100," deployment/playbook.yml -u myuser --ask-pass
 ```
 
 **Note**: The comma after the IP address is required for Ansible ad-hoc inventory.
-
-### 2. Multi-Host Deployment
-
-Create an inventory file:
-
-```bash
-# Create inventory file
-cat > deployment/inventory <<'EOF'
-[shelffiles_targets]
-server1 ansible_host=192.168.1.100 ansible_user=deploy
-server2 ansible_host=192.168.1.101 ansible_user=deploy
-
-[shelffiles_targets:vars]
-ansible_python_interpreter=/usr/bin/python3
-EOF
-
-# Deploy to all hosts
-cd /path/to/shelffiles
-ansible-playbook deployment/playbook.yml
-```
 
 ## Authentication Methods
 
@@ -71,8 +53,8 @@ ansible-playbook deployment/playbook.yml
 Most secure and convenient. Set up SSH key on target:
 
 ```bash
-ssh-copy-id user@target-host
-ansible-playbook -i "target-host," deployment/playbook.yml
+ssh-copy-id user@192.168.1.100
+ansible-playbook -i "192.168.1.100," deployment/playbook.yml
 ```
 
 ### Interactive Password
@@ -80,7 +62,7 @@ ansible-playbook -i "target-host," deployment/playbook.yml
 Prompt for password at runtime:
 
 ```bash
-ansible-playbook -i "target-host," deployment/playbook.yml --ask-pass
+ansible-playbook -i "192.168.1.100," deployment/playbook.yml --ask-pass
 ```
 
 Requires `sshpass` to be installed on control machine:
@@ -90,30 +72,6 @@ sudo apt install sshpass
 
 # macOS
 brew install hudochenkov/sshpass/sshpass
-```
-
-### Ansible Vault (Encrypted Password)
-
-Store password securely:
-
-```bash
-# Create encrypted vault file
-ansible-vault create group_vars/all/vault.yml
-
-# Add password in editor:
-# vault_password: your_password_here
-
-# Reference in inventory file:
-cat > deployment/inventory <<'EOF'
-[shelffiles_targets]
-myserver ansible_host=192.168.1.100 ansible_user=deploy ansible_password="{{ vault_password }}"
-
-[shelffiles_targets:vars]
-ansible_python_interpreter=/usr/bin/python3
-EOF
-
-# Deploy with vault
-ansible-playbook -i deployment/inventory deployment/playbook.yml --ask-vault-pass
 ```
 
 ## Deployment Process
@@ -154,7 +112,7 @@ The playbook performs these steps automatically:
 
 ### Playbook Variables
 
-Set in inventory file under `[shelffiles_targets:vars]` or via `-e` flag:
+Set via `-e` flag:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
@@ -166,14 +124,14 @@ Set in inventory file under `[shelffiles_targets:vars]` or via `-e` flag:
 ### Example: Custom Installation Directory
 
 ```bash
-ansible-playbook -i inventory deployment/playbook.yml \
+ansible-playbook -i "192.168.1.100," deployment/playbook.yml \
   -e "shelffiles_home=/opt/shelffiles"
 ```
 
 ### Example: Force Rebuild
 
 ```bash
-ansible-playbook -i inventory deployment/playbook.yml \
+ansible-playbook -i "192.168.1.100," deployment/playbook.yml \
   -e "shelffiles_force_rebuild=true"
 ```
 
@@ -183,7 +141,7 @@ For targets without internet access:
 
 1. **First deployment** (control machine has internet):
    ```bash
-   ansible-playbook -i "target," deployment/playbook.yml
+   ansible-playbook -i "192.168.1.100," deployment/playbook.yml
    ```
    Binaries are downloaded to `deployment/files/` on control machine.
 
@@ -195,12 +153,12 @@ For targets without internet access:
 3. **Pre-download binaries** (optional):
    ```bash
    # Manually download to cache before first deployment
-   cd deployment
-   curl -L -o files/nix-portable-x86_64 \
+   mkdir -p deployment/files
+   curl -L -o deployment/files/nix-portable-x86_64 \
      https://github.com/DavHau/nix-portable/releases/latest/download/nix-portable-x86_64
-   curl -L -o files/nix-portable-aarch64 \
+   curl -L -o deployment/files/nix-portable-aarch64 \
      https://github.com/DavHau/nix-portable/releases/latest/download/nix-portable-aarch64
-   chmod +x files/nix-portable-*
+   chmod +x deployment/files/nix-portable-*
    ```
 
 ## Verification
@@ -208,7 +166,7 @@ For targets without internet access:
 After deployment, SSH to target and verify:
 
 ```bash
-ssh user@target-host
+ssh user@192.168.1.100
 cd ~/shelffiles
 
 # Check nix-portable version
@@ -229,7 +187,7 @@ nix search nixpkgs hello
 
 **Solution**: Check architecture on target:
 ```bash
-ssh user@target "uname -m"
+ssh user@192.168.1.100 "uname -m"
 ```
 
 Only x86_64 and aarch64 are supported. For other architectures, nix-portable must be built manually.
@@ -239,10 +197,10 @@ Only x86_64 and aarch64 are supported. For other architectures, nix-portable mus
 **Cause**: SSH authentication failed
 
 **Solutions**:
-- Verify SSH access: `ssh user@target`
+- Verify SSH access: `ssh user@192.168.1.100`
 - Use `--ask-pass` flag for password authentication
-- Set up SSH key: `ssh-copy-id user@target`
-- Check `ansible_user` in inventory matches SSH user
+- Set up SSH key: `ssh-copy-id user@192.168.1.100`
+- Specify user with `-u` flag: `ansible-playbook -i "192.168.1.100," deployment/playbook.yml -u myuser`
 
 ### Error: "Python interpreter not found"
 
@@ -255,9 +213,12 @@ sudo apt install python3
 
 # RHEL/CentOS
 sudo yum install python3
+```
 
-# Specify custom interpreter in inventory
-ansible_python_interpreter=/usr/local/bin/python3
+Or specify custom interpreter:
+```bash
+ansible-playbook -i "192.168.1.100," deployment/playbook.yml \
+  -e "ansible_python_interpreter=/usr/local/bin/python3"
 ```
 
 ### Error: "rsync not found"
@@ -291,16 +252,16 @@ Run with increased verbosity to debug:
 
 ```bash
 # Level 1: Show task results
-ansible-playbook -v -i inventory deployment/playbook.yml
+ansible-playbook -v -i "192.168.1.100," deployment/playbook.yml
 
 # Level 2: Show task input
-ansible-playbook -vv -i inventory deployment/playbook.yml
+ansible-playbook -vv -i "192.168.1.100," deployment/playbook.yml
 
 # Level 3: Show task execution details
-ansible-playbook -vvv -i inventory deployment/playbook.yml
+ansible-playbook -vvv -i "192.168.1.100," deployment/playbook.yml
 
 # Level 4: Show connection debugging
-ansible-playbook -vvvv -i inventory deployment/playbook.yml
+ansible-playbook -vvvv -i "192.168.1.100," deployment/playbook.yml
 ```
 
 ### Dry Run
@@ -308,7 +269,7 @@ ansible-playbook -vvvv -i inventory deployment/playbook.yml
 Test without making changes:
 
 ```bash
-ansible-playbook -i inventory deployment/playbook.yml --check
+ansible-playbook -i "192.168.1.100," deployment/playbook.yml --check
 ```
 
 Note: `--check` mode has limitations with command/shell modules.
@@ -316,7 +277,7 @@ Note: `--check` mode has limitations with command/shell modules.
 ## Architecture Diagram
 
 ```
-Control Machine                           Target Machine
+Control Machine                           Target Machine (192.168.1.100)
 ┌─────────────────────────┐              ┌──────────────────────┐
 │                         │              │                      │
 │ shelffiles/             │              │ ~/shelffiles/        │
@@ -338,48 +299,11 @@ Control Machine                           Target Machine
 └─────────────────────────┘
 ```
 
-## Advanced Usage
-
-### Limit Execution to Specific Hosts
-
-```bash
-# Deploy only to hosts matching pattern
-ansible-playbook -i inventory deployment/playbook.yml --limit "server1,server2"
-
-# Deploy only to x86_64 hosts
-ansible-playbook -i inventory deployment/playbook.yml --limit "x86_64_hosts"
-```
-
-### Run Specific Roles
-
-```bash
-# Only install nix-portable (skip shelffiles)
-ansible-playbook -i inventory deployment/playbook.yml --tags "nix-portable"
-
-# Only deploy shelffiles (skip nix-portable check)
-ansible-playbook -i inventory deployment/playbook.yml --tags "shelffiles"
-```
-
-Note: Tags must be added to playbook.yml roles first.
-
-### Override Repository Source
-
-To deploy from a different repository or branch:
-
-```bash
-# Not directly supported - synchronize uses local files
-# Workaround: git clone specific branch locally, then deploy
-git clone -b feature-branch https://github.com/user/shelffiles.git /tmp/shelffiles
-cd /tmp/shelffiles
-ansible-playbook -i "target," deployment/playbook.yml
-```
-
 ## File Structure
 
 ```
 deployment/
 ├── playbook.yml              # Main playbook
-├── ansible.cfg               # Ansible configuration
 ├── README.md                 # This file
 ├── files/                    # Binary cache (git-ignored)
 │   ├── nix-portable-x86_64   # Downloaded on first run
@@ -397,35 +321,8 @@ deployment/
 ## Security Considerations
 
 1. **SSH Key Authentication**: Strongly recommended over passwords
-2. **Host Key Checking**: Disabled in ansible.cfg for testing - enable in production
-3. **Vault Passwords**: Use `ansible-vault` for sensitive data, never commit plain passwords
-4. **No Sudo Required**: Deployment uses `--no-root` flag, no privilege escalation
-5. **Minimal Attack Surface**: Only SSH and Python required on target
-
-## CI/CD Integration
-
-### GitLab CI Example
-
-```yaml
-deploy-shelffiles:
-  stage: deploy
-  script:
-    - ansible-playbook -i "$INVENTORY" deployment/playbook.yml
-  variables:
-    ANSIBLE_HOST_KEY_CHECKING: "False"
-  only:
-    - main
-```
-
-### GitHub Actions Example
-
-```yaml
-- name: Deploy Shelffiles
-  env:
-    ANSIBLE_HOST_KEY_CHECKING: "False"
-  run: |
-    ansible-playbook -i inventory deployment/playbook.yml
-```
+2. **No Sudo Required**: Deployment uses `--no-root` flag, no privilege escalation
+3. **Minimal Attack Surface**: Only SSH and Python required on target
 
 ## Support
 

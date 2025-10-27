@@ -24,11 +24,11 @@ Shelffiles currently requires manual installation steps on target machines. To e
 
 - Affected specs: New deployment capability (specs/deployment/spec.md)
 - Affected code: New files under deployment/ directory
-  - deployment/playbook.yml (main Ansible playbook with all tasks)
+  - deployment/playbook.yml (main Ansible playbook for single-host deployment)
   - deployment/roles/nix-portable/ (nix-portable installation role)
   - deployment/roles/shelffiles/ (shelffiles deployment role)
-  - deployment/ansible.cfg (Ansible configuration)
-  - deployment/README.md (deployment documentation with inventory examples)
+  - deployment/README.md (deployment documentation)
   - deployment/files/ (directory for cached nix-portable binaries, git-ignored)
 - No breaking changes to existing functionality
 - No shell scripts added - all logic in Ansible tasks
+- Focused on single-host deployment via IP address (ad-hoc inventory)
