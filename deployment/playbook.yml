@@ -1,0 +1,94 @@
+---
+# Shelffiles Deployment Playbook
+# Deploy nix-portable and shelffiles to remote hosts with minimal dependencies
+#
+# Usage:
+#   Single host: ansible-playbook -i 192.168.1.100, deployment/playbook.yml --ask-pass
+#   Multi-host:  ansible-playbook -i deployment/inventory deployment/playbook.yml
+#
+# Requirements:
+#   - Run from repository root directory
+#   - Target host: SSH access, Python, basic POSIX commands (mkdir, chmod, cp, tar)
+#   - Control machine: Internet access (first run only for binary download)
+
+- name: Deploy Shelffiles with nix-portable
+  hosts: all
+  gather_facts: yes
+
+  vars:
+    shelffiles_home: "{{ ansible_env.HOME }}/shelffiles"
+    nix_portable_url_base: "https://github.com/DavHau/nix-portable/releases/latest/download"
+    deployment_files_dir: "{{ playbook_dir }}/files"
+
+  pre_tasks:
+    - name: Validate target architecture
+      assert:
+        that:
+          - ansible_architecture in ['x86_64', 'aarch64']
+        fail_msg: "Unsupported architecture {{ ansible_architecture }}. Only x86_64 and aarch64 are supported."
+        success_msg: "Target architecture {{ ansible_architecture }} is supported."
+
+    - name: Check Python interpreter
+      command: "{{ ansible_python_interpreter | default('python3') }} --version"
+      changed_when: false
+      register: python_check
+
+    - name: Display target information
+      debug:
+        msg:
+          - "Target host: {{ inventory_hostname }}"
+          - "Architecture: {{ ansible_architecture }}"
+          - "OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+          - "Python: {{ python_check.stdout }}"
+
+    # Binary acquisition on control machine
+    - name: Create deployment/files directory on control machine
+      file:
+        path: "{{ deployment_files_dir }}"
+        state: directory
+        mode: '0755'
+      delegate_to: localhost
+      run_once: true
+
+    - name: Download nix-portable-x86_64 to control machine
+      get_url:
+        url: "{{ nix_portable_url_base }}/nix-portable-x86_64"
+        dest: "{{ deployment_files_dir }}/nix-portable-x86_64"
+        mode: '0755'
+      delegate_to: localhost
+      run_once: true
+      register: download_x86_64
+
+    - name: Download nix-portable-aarch64 to control machine
+      get_url:
+        url: "{{ nix_portable_url_base }}/nix-portable-aarch64"
+        dest: "{{ deployment_files_dir }}/nix-portable-aarch64"
+        mode: '0755'
+      delegate_to: localhost
+      run_once: true
+      register: download_aarch64
+
+    - name: Display binary download status
+      debug:
+        msg: "nix-portable binaries {{ 'downloaded' if (download_x86_64.changed or download_aarch64.changed) else 'already cached' }} on control machine"
+      run_once: true
+
+  roles:
+    - role: nix-portable
+    - role: shelffiles
+
+  post_tasks:
+    - name: Display deployment summary
+      debug:
+        msg:
+          - "=========================================="
+          - "Shelffiles Deployment Complete"
+          - "=========================================="
+          - "Installation directory: {{ shelffiles_home }}"
+          - "Nix-portable binary: {{ shelffiles_home }}/nix-portable"
+          - "Build result: {{ shelffiles_home }}/result"
+          - ""
+          - "Next steps:"
+          - "  1. SSH to target: ssh {{ ansible_user_id }}@{{ inventory_hostname }}"
+          - "  2. Enter environment: cd {{ shelffiles_home }} && ./entrypoint/bash"
+          - "  3. Or rebuild: cd {{ shelffiles_home }} && ./nix-portable nix build"

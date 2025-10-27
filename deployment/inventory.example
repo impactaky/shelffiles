@@ -1,0 +1,69 @@
+# Shelffiles Deployment Inventory Example
+#
+# Copy this file to 'inventory' and customize for your environment
+# Or use ad-hoc inventory: ansible-playbook -i "192.168.1.100," playbook.yml
+#
+# Note: The comma after the IP in ad-hoc mode is required by Ansible
+
+# ==============================================================================
+# Example 1: Single host with SSH key authentication (recommended)
+# ==============================================================================
+[shelffiles_targets]
+my-server ansible_host=192.168.1.100 ansible_user=myuser
+
+# ==============================================================================
+# Example 2: Multiple hosts
+# ==============================================================================
+# [shelffiles_targets]
+# server1 ansible_host=192.168.1.100 ansible_user=deploy
+# server2 ansible_host=192.168.1.101 ansible_user=deploy
+# server3 ansible_host=192.168.1.102 ansible_user=deploy
+
+# ==============================================================================
+# Example 3: With password authentication (use ansible-vault for passwords)
+# ==============================================================================
+# [shelffiles_targets]
+# dev-server ansible_host=192.168.1.100 ansible_user=developer ansible_password="{{ vault_password }}"
+#
+# Store password in encrypted file:
+# ansible-vault create group_vars/all/vault.yml
+# Then add: vault_password: your_password_here
+# Run with: ansible-playbook -i inventory playbook.yml --ask-vault-pass
+
+# ==============================================================================
+# Example 4: Custom Python interpreter
+# ==============================================================================
+# [shelffiles_targets]
+# legacy-server ansible_host=192.168.1.100 ansible_user=admin ansible_python_interpreter=/usr/bin/python2.7
+
+# ==============================================================================
+# Example 5: Different architectures
+# ==============================================================================
+# [x86_64_hosts]
+# amd-server ansible_host=192.168.1.100
+#
+# [aarch64_hosts]
+# arm-server ansible_host=192.168.1.200
+#
+# [shelffiles_targets:children]
+# x86_64_hosts
+# aarch64_hosts
+
+# ==============================================================================
+# Group variables (applies to all hosts)
+# ==============================================================================
+[shelffiles_targets:vars]
+# Python interpreter (Ansible requirement)
+ansible_python_interpreter=/usr/bin/python3
+
+# SSH connection settings
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+
+# Shelffiles installation directory (default: ~/shelffiles)
+# shelffiles_home={{ ansible_env.HOME }}/shelffiles
+
+# Force rebuild even if already built
+# shelffiles_force_rebuild=false
+
+# Create XDG directories (cache/, share/, state/)
+# shelffiles_create_xdg_dirs=true

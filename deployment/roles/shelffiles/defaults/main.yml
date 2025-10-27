@@ -1,0 +1,16 @@
+---
+# Default variables for shelffiles role
+
+# Force rebuild even if result/ exists
+shelffiles_force_rebuild: false
+
+# Create XDG directories (cache/, share/, state/)
+shelffiles_create_xdg_dirs: true
+
+# Additional arguments to pass to setup.sh
+# Example: "--sudo-mount" for systems requiring sudo for /nix mount
+# shelffiles_setup_args: ""
+
+# Whether to configure shell integration
+# Set to true to add shelffiles to user's shell rc files
+shelffiles_configure_shells: false

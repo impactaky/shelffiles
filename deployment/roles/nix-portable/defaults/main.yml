@@ -1,0 +1,11 @@
+---
+# Default variables for nix-portable role
+# These can be overridden in playbook or inventory
+
+# Home directory for shelffiles installation
+# Default: ~/shelffiles
+# shelffiles_home: "{{ ansible_env.HOME }}/shelffiles"
+
+# Directory containing downloaded nix-portable binaries on control machine
+# Default: deployment/files/
+# deployment_files_dir: "{{ playbook_dir }}/files"

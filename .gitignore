@@ -5,6 +5,9 @@ state/
 result
 flake.lock
 
+# Deployment cached binaries
+deployment/files/
+
 # Editor files
 .vscode/
 .idea/

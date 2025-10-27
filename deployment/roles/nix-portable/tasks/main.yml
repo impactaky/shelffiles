@@ -1,0 +1,38 @@
+---
+# Nix-portable installation tasks
+# Transfers and installs nix-portable binary on target host
+
+- name: Check if nix-portable already exists on target
+  stat:
+    path: "{{ shelffiles_home }}/nix-portable"
+  register: nix_portable_stat
+
+- name: Display nix-portable installation status
+  debug:
+    msg: "nix-portable {{ 'already installed' if nix_portable_stat.stat.exists else 'will be installed' }}"
+
+- name: Create shelffiles directory on target
+  file:
+    path: "{{ shelffiles_home }}"
+    state: directory
+    mode: '0755'
+  when: not nix_portable_stat.stat.exists
+
+- name: Copy nix-portable binary to target
+  copy:
+    src: "{{ deployment_files_dir }}/nix-portable-{{ ansible_architecture }}"
+    dest: "{{ shelffiles_home }}/nix-portable"
+    mode: '0755'
+  when: not nix_portable_stat.stat.exists
+  register: nix_portable_copy
+
+- name: Verify nix-portable installation
+  command: "{{ shelffiles_home }}/nix-portable nix --version"
+  changed_when: false
+  register: nix_version
+  when: nix_portable_copy.changed or nix_portable_stat.stat.exists
+
+- name: Display nix-portable version
+  debug:
+    msg: "{{ nix_version.stdout_lines }}"
+  when: nix_version.stdout_lines is defined

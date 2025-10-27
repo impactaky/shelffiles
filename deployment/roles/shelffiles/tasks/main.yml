@@ -1,0 +1,83 @@
+---
+# Shelffiles deployment tasks
+# Synchronizes repository and runs setup
+
+- name: Check if shelffiles repository already exists
+  stat:
+    path: "{{ shelffiles_home }}/flake.nix"
+  register: shelffiles_stat
+
+- name: Synchronize shelffiles repository to target
+  synchronize:
+    src: "{{ playbook_dir }}/../"
+    dest: "{{ shelffiles_home }}/"
+    delete: false
+    rsync_opts:
+      - "--exclude=.git/"
+      - "--exclude=cache/"
+      - "--exclude=result/"
+      - "--exclude=result_docker/"
+      - "--exclude=/nix/"
+      - "--exclude=deployment/"
+      - "--exclude=.github/"
+      - "--exclude=*.md"
+  register: repo_sync
+
+- name: Check if nix build result already exists
+  stat:
+    path: "{{ shelffiles_home }}/result"
+  register: build_result_stat
+
+- name: Run setup.sh to build environment
+  command:
+    cmd: "./setup.sh --no-root {{ shelffiles_setup_args | default('') }}"
+    chdir: "{{ shelffiles_home }}"
+  when: not build_result_stat.stat.exists or repo_sync.changed or shelffiles_force_rebuild | default(false)
+  register: setup_result
+  environment:
+    HOME: "{{ ansible_env.HOME }}"
+
+- name: Display setup output
+  debug:
+    var: setup_result.stdout_lines
+  when: setup_result.changed and setup_result.stdout_lines is defined
+
+- name: Verify build result
+  stat:
+    path: "{{ shelffiles_home }}/result"
+  register: final_build_stat
+
+- name: Ensure build succeeded
+  assert:
+    that:
+      - final_build_stat.stat.exists
+      - final_build_stat.stat.islnk
+    fail_msg: "Build failed - result symlink not found at {{ shelffiles_home }}/result"
+    success_msg: "Build successful - environment ready"
+
+- name: Test nix command
+  command: "{{ shelffiles_home }}/nix-portable nix --version"
+  changed_when: false
+  register: nix_test
+
+- name: Configure XDG directories (optional)
+  file:
+    path: "{{ shelffiles_home }}/{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - cache
+    - share
+    - state
+  when: shelffiles_create_xdg_dirs | default(true)
+
+- name: Register installation facts
+  set_fact:
+    shelffiles_installation:
+      home: "{{ shelffiles_home }}"
+      nix_portable: "{{ shelffiles_home }}/nix-portable"
+      result: "{{ shelffiles_home }}/result"
+      entrypoints:
+        bash: "{{ shelffiles_home }}/entrypoint/bash"
+        zsh: "{{ shelffiles_home }}/entrypoint/zsh"
+        fish: "{{ shelffiles_home }}/entrypoint/fish"

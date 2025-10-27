@@ -1,0 +1,3 @@
+---
+# Handlers for nix-portable role
+# Currently no handlers needed - all operations are idempotent
