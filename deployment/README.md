@@ -34,29 +34,6 @@ ansible-playbook -i "192.168.1.100," deployment/playbook.yml -u username --ask-p
 
 **Note**: The comma after the IP is required by Ansible.
 
-## How It Works
-
-1. **Binary Acquisition** (control machine):
-   - Downloads nix-portable binaries from GitHub to `deployment/files/`
-   - Cached for offline use after first run
-
-2. **Pre-flight Checks** (target):
-   - Validates architecture (x86_64 or aarch64)
-   - Checks Python interpreter
-
-3. **Nix-portable Installation** (target):
-   - Transfers binary matching target architecture
-   - Skipped if already installed
-
-4. **Shelffiles Deployment** (target):
-   - Synchronizes repository (excludes: .git/, cache/, result/, /nix, deployment/)
-   - Runs `./setup.sh --no-root`
-   - Creates XDG directories
-
-5. **Verification**:
-   - Tests nix command
-   - Displays installation summary
-
 ## Configuration
 
 Override defaults with `-e` flag:
@@ -75,30 +52,6 @@ Available variables:
 - `shelffiles_create_xdg_dirs` (default: `true`)
 - `shelffiles_setup_args` (default: `""`)
 
-## Offline Deployment
-
-After first run, binaries are cached in `deployment/files/`. Subsequent deployments work offline.
-
-To pre-cache binaries:
-```bash
-mkdir -p deployment/files
-curl -L -o deployment/files/nix-portable-x86_64 \
-  https://github.com/DavHau/nix-portable/releases/latest/download/nix-portable-x86_64
-curl -L -o deployment/files/nix-portable-aarch64 \
-  https://github.com/DavHau/nix-portable/releases/latest/download/nix-portable-aarch64
-chmod +x deployment/files/nix-portable-*
-```
-
-## Verification
-
-After deployment:
-```bash
-ssh user@192.168.1.100
-cd ~/shelffiles
-./nix-portable nix --version
-./entrypoint/bash
-```
-
 ## Troubleshooting
 
 **Architecture error**: Target must be x86_64 or aarch64
@@ -114,15 +67,3 @@ ansible-playbook -i "IP," deployment/playbook.yml -e "ansible_python_interpreter
 **Verbose output**: Add `-v`, `-vv`, `-vvv`, or `-vvvv` flag
 
 **Dry run**: Add `--check` flag (limited support for command tasks)
-
-## File Structure
-
-```
-deployment/
-├── playbook.yml           # Main playbook
-├── README.md              # This file
-├── files/                 # Binary cache (git-ignored)
-└── roles/
-    ├── nix-portable/      # Binary installation
-    └── shelffiles/        # Repository deployment
-```
