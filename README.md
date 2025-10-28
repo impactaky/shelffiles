@@ -129,6 +129,23 @@ shelffiles/
 └── flake.nix         # Nix flake configuration
 ```
 
+## Cross-Compilation
+
+Shelffiles supports cross-compilation, allowing you to build packages for different architectures:
+
+```bash
+# Build for ARM64/aarch64 on x86_64
+./setup.sh --system aarch64-linux
+
+# Build for x86_64 on ARM64
+./setup.sh --system x86_64-linux
+
+# Automatic cross-compilation to opposite architecture
+./utils/cross_compile.sh
+```
+
+For detailed information about cross-compilation, including prerequisites, troubleshooting, and advanced usage, see [CROSS_COMPILE.md](CROSS_COMPILE.md).
+
 ## Testing
 
 To run tests for a specific shell:

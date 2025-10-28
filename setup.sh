@@ -3,6 +3,7 @@
 # @describe Setup development environment with Nix
 # @flag --no-root     Use nix-portable instead of root installation
 # @flag --sudo-mount  Use sudo with nsenter/mount for /nix access
+# @option --system <SYSTEM>  Target system for cross-compilation (e.g., aarch64-linux, x86_64-linux)
 # @arg nix_args~      Additional arguments to pass to nix build
 
 # ARGC-BUILD {
@@ -31,22 +32,23 @@ _argc_usage() {
     cat <<-'EOF'
 Setup development environment with Nix
 
-USAGE: setup.sh [OPTIONS] [NIX-ARGS]...
+USAGE: setup [OPTIONS] [NIX-ARGS]...
 
 ARGS:
   [NIX-ARGS]...  Additional arguments to pass to nix build
 
 OPTIONS:
-      --no-root     Use nix-portable instead of root installation
-      --sudo-mount  Use sudo with nsenter/mount for /nix access
-  -h, --help        Print help
-  -V, --version     Print version
+      --no-root          Use nix-portable instead of root installation
+      --sudo-mount       Use sudo with nsenter/mount for /nix access
+      --system <SYSTEM>  Target system for cross-compilation (e.g., aarch64-linux, x86_64-linux)
+  -h, --help             Print help
+  -V, --version          Print version
 EOF
     exit
 }
 
 _argc_version() {
-    echo setup.sh 0.0.0
+    echo setup 0.0.0
     exit
 }
 
@@ -91,6 +93,15 @@ _argc_parse() {
                 argc_sudo_mount=1
             fi
             ;;
+        --system)
+            _argc_take_args "--system <SYSTEM>" 1 1 "-" ""
+            _argc_index=$((_argc_index + _argc_take_args_len + 1))
+            if [[ -z "${argc_system:-}" ]]; then
+                argc_system="${_argc_take_args_values[0]:-}"
+            else
+                _argc_die "error: the argument \`--system\` cannot be used multiple times"
+            fi
+            ;;
         *)
             if _argc_maybe_flag_option "-" "$_argc_item"; then
                 _argc_die "error: unexpected argument \`$_argc_key\` found"
@@ -116,6 +127,45 @@ _argc_parse() {
         if [[ -n "$values_index" ]]; then
             argc_nix_args=("${argc__positionals[@]:values_index:values_size}")
         fi
+    fi
+}
+
+_argc_take_args() {
+    _argc_take_args_values=()
+    _argc_take_args_len=0
+    local param="$1" min="$2" max="$3" signs="$4" delimiter="$5"
+    if [[ "$min" -eq 0 ]] && [[ "$max" -eq 0 ]]; then
+        return
+    fi
+    local _argc_take_index=$((_argc_index + 1)) _argc_take_value
+    if [[ "$_argc_item" == *=* ]]; then
+        _argc_take_args_values=("${_argc_item##*=}")
+    else
+        while [[ $_argc_take_index -lt $_argc_len ]]; do
+            _argc_take_value="${argc__args[_argc_take_index]}"
+            if _argc_maybe_flag_option "$signs" "$_argc_take_value"; then
+                if [[ "${#_argc_take_value}" -gt 1 ]]; then
+                    break
+                fi
+            fi
+            _argc_take_args_values+=("$_argc_take_value")
+            _argc_take_args_len=$((_argc_take_args_len + 1))
+            if [[ "$_argc_take_args_len" -ge "$max" ]]; then
+                break
+            fi
+            _argc_take_index=$((_argc_take_index + 1))
+        done
+    fi
+    if [[ "${#_argc_take_args_values[@]}" -lt "$min" ]]; then
+        _argc_die "error: incorrect number of values for \`$param\`"
+    fi
+    if [[ -n "$delimiter" ]] && [[ "${#_argc_take_args_values[@]}" -gt 0 ]]; then
+        local item values arr=()
+        for item in "${_argc_take_args_values[@]}"; do
+            IFS="$delimiter" read -r -a values <<<"$item"
+            arr+=("${values[@]}")
+        done
+        _argc_take_args_values=("${arr[@]}")
     fi
 }
 
@@ -202,6 +252,36 @@ _argc_run "$@"
 
 set -eu
 
+# Validate --system flag if provided
+if [ -n "${argc_system:-}" ]; then
+    # List of supported systems from flake.nix
+    SUPPORTED_SYSTEMS=("aarch64-linux" "x86_64-linux" "aarch64-darwin" "x86_64-darwin")
+
+    # Check if the provided system is valid
+    if [[ ! " ${SUPPORTED_SYSTEMS[@]} " =~ " ${argc_system} " ]]; then
+        echo "Error: Unsupported system '${argc_system}'" >&2
+        echo "Supported systems: ${SUPPORTED_SYSTEMS[*]}" >&2
+        exit 1
+    fi
+
+    # Extract OS from target system
+    target_os="${argc_system##*-}"
+
+    # Get current system OS
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        current_os="darwin"
+    else
+        current_os="linux"
+    fi
+
+    # Warn if trying to cross-compile between different OSes
+    if [[ "$target_os" != "$current_os" ]]; then
+        echo "Error: Cross-compilation between different operating systems (${current_os} -> ${target_os}) is not supported by Nix" >&2
+        echo "Please use a native builder for ${target_os} systems" >&2
+        exit 1
+    fi
+fi
+
 if [[ "$OSTYPE" == "darwin"* ]] && [ "${argc_no_root:-0}" -eq 1 ]; then
     echo "Error: --no-root is not supported on macOS"
     exit 1
@@ -237,9 +317,20 @@ else
 fi
 
 echo "Building..."
-if [ "${argc_no_root:-0}" -eq 1 ] || [ "${argc_sudo_mount:-0}" -eq 1 ]; then
-    ./nix-portable nix build --extra-experimental-features nix-command --extra-experimental-features flakes --store "$(pwd)" "${argc_nix_args[@]}"
+
+# Determine the build target
+if [ -n "${argc_system:-}" ]; then
+    # Cross-compilation: use explicit system package
+    BUILD_TARGET=".#packages.${argc_system}.default"
+    echo "Cross-compiling for ${argc_system}..."
 else
-    nix build --extra-experimental-features nix-command --extra-experimental-features flakes "${argc_nix_args[@]}"
+    # Default: use current system's default package
+    BUILD_TARGET=""
+fi
+
+if [ "${argc_no_root:-0}" -eq 1 ] || [ "${argc_sudo_mount:-0}" -eq 1 ]; then
+    ./nix-portable nix build --extra-experimental-features nix-command --extra-experimental-features flakes --store "$(pwd)" $BUILD_TARGET "${argc_nix_args[@]}"
+else
+    nix build --extra-experimental-features nix-command --extra-experimental-features flakes $BUILD_TARGET "${argc_nix_args[@]}"
 fi
 
