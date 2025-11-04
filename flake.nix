@@ -64,7 +64,9 @@
           );
           packageList = builtins.concatStringsSep " " packageNames;
         in
-        pkgs.stdenv.mkDerivation {
+        # Use buildPackages.stdenv to ensure this runs on the build platform,
+        # not the target platform (important for cross-compilation)
+        pkgs.buildPackages.stdenv.mkDerivation {
           name = "shelffiles-env-generator";
           src = ./.;
 

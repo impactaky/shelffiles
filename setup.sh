@@ -322,24 +322,21 @@ echo "Building..."
 if [ -n "${argc_system:-}" ]; then
     # Cross-compilation: use explicit system package
     BUILD_TARGET=".#packages.${argc_system}.default"
-    echo "Cross-compiling for ${argc_system}..."
-    # Add system parameter to allow cross-compilation via emulation
-    SYSTEM_ARG="--system ${argc_system}"
+    echo "Building for ${argc_system}..."
 else
     # Default: use current system's default package
     BUILD_TARGET=""
-    SYSTEM_ARG=""
 fi
 
 if [ "${argc_no_root:-0}" -eq 1 ] || [ "${argc_sudo_mount:-0}" -eq 1 ]; then
     if [ -n "$BUILD_TARGET" ]; then
-        ./nix-portable nix build --extra-experimental-features nix-command --extra-experimental-features flakes --store "$(pwd)" $SYSTEM_ARG "$BUILD_TARGET" "${argc_nix_args[@]}"
+        ./nix-portable nix build --extra-experimental-features nix-command --extra-experimental-features flakes --option extra-platforms "aarch64-linux" --option sandbox false "$BUILD_TARGET" "${argc_nix_args[@]}"
     else
-        ./nix-portable nix build --extra-experimental-features nix-command --extra-experimental-features flakes --store "$(pwd)" "${argc_nix_args[@]}"
+        ./nix-portable nix build --extra-experimental-features nix-command --extra-experimental-features flakes "${argc_nix_args[@]}"
     fi
 else
     if [ -n "$BUILD_TARGET" ]; then
-        nix build --extra-experimental-features nix-command --extra-experimental-features flakes $SYSTEM_ARG "$BUILD_TARGET" "${argc_nix_args[@]}"
+        nix build --extra-experimental-features nix-command --extra-experimental-features flakes --option extra-platforms "aarch64-linux" --option sandbox false "$BUILD_TARGET" "${argc_nix_args[@]}"
     else
         nix build --extra-experimental-features nix-command --extra-experimental-features flakes "${argc_nix_args[@]}"
     fi
