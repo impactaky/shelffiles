@@ -140,8 +140,8 @@ Shelffiles supports cross-compilation, allowing you to build packages for differ
 # Build for x86_64 on ARM64
 ./setup.sh --system x86_64-linux
 
-# Automatic cross-compilation to opposite architecture
-./utils/cross_compile.sh
+# Can be combined with other flags
+./setup.sh --no-root --system aarch64-linux
 ```
 
 For detailed information about cross-compilation, including prerequisites, troubleshooting, and advanced usage, see [CROSS_COMPILE.md](CROSS_COMPILE.md).

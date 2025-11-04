@@ -25,15 +25,9 @@ Build for a specific architecture using the `--system` flag:
 
 # Build for x86_64 on ARM64
 ./setup.sh --system x86_64-linux
-```
 
-### Automatic Cross-Compilation
-
-Use the helper script to automatically build for the opposite architecture:
-
-```bash
-# Detects current architecture and builds for the other
-./utils/cross_compile.sh
+# Can be combined with other flags
+./setup.sh --no-root --system aarch64-linux
 ```
 
 ### Docker-Based Cross-Compilation

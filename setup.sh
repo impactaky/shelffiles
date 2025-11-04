@@ -329,8 +329,16 @@ else
 fi
 
 if [ "${argc_no_root:-0}" -eq 1 ] || [ "${argc_sudo_mount:-0}" -eq 1 ]; then
-    ./nix-portable nix build --extra-experimental-features nix-command --extra-experimental-features flakes --store "$(pwd)" $BUILD_TARGET "${argc_nix_args[@]}"
+    if [ -n "$BUILD_TARGET" ]; then
+        ./nix-portable nix build --extra-experimental-features nix-command --extra-experimental-features flakes --store "$(pwd)" "$BUILD_TARGET" "${argc_nix_args[@]}"
+    else
+        ./nix-portable nix build --extra-experimental-features nix-command --extra-experimental-features flakes --store "$(pwd)" "${argc_nix_args[@]}"
+    fi
 else
-    nix build --extra-experimental-features nix-command --extra-experimental-features flakes $BUILD_TARGET "${argc_nix_args[@]}"
+    if [ -n "$BUILD_TARGET" ]; then
+        nix build --extra-experimental-features nix-command --extra-experimental-features flakes "$BUILD_TARGET" "${argc_nix_args[@]}"
+    else
+        nix build --extra-experimental-features nix-command --extra-experimental-features flakes "${argc_nix_args[@]}"
+    fi
 fi
 
