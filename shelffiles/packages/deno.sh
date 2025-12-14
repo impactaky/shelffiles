@@ -1,2 +1,0 @@
-export DENO_INSTALL_ROOT="$XDG_DATA_HOME/deno/bin"
-export PATH="$DENO_INSTALL_ROOT:$PATH"

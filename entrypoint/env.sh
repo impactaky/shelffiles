@@ -33,13 +33,6 @@ mkdir -p "$XDG_CACHE_HOME"
 mkdir -p "$XDG_DATA_HOME"
 mkdir -p "$XDG_STATE_HOME"
 
-# Source the generated generated_env.sh from the nix build result
-GENERATED_ENV_FILE="$SHELFFILES/result/share/shelffiles/generated_env.sh"
-if [ -f "$GENERATED_ENV_FILE" ]; then
-  # shellcheck disable=SC1090
-  . "$GENERATED_ENV_FILE"
-fi
-
 USER_ENV_FILE="$SHELFFILES/user_env.sh"
 if [ -f "$USER_ENV_FILE" ]; then
   # shellcheck disable=SC1090
