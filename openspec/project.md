@@ -29,7 +29,6 @@ Shelffiles is a portable environment configuration system that uses Nix to manag
 1. **Nix Flakes Layer**
    - `flake.nix`: Defines multi-architecture package environment
    - `packages.nix`: User-customizable package list with nix-ai-tools support
-   - Creates `generated_env.sh` with package-specific environment variables
 
 2. **XDG Environment Management** (`entrypoint/env.sh`)
    - Sets XDG variables pointing to repository subdirectories
