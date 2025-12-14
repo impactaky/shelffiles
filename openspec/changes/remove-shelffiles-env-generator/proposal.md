@@ -6,17 +6,14 @@ The automatic environment generation feature (`shelffiles-env-generator`) create
 
 - **BREAKING**: Remove automatic `generated_env.sh` generation from nix build process
 - Remove `shelffiles/generate_env.sh` script
-- Remove `shelffiles/packages/*.sh` environment configuration files
-- Remove `shelffiles/packages/.shellcheckrc`
 - Revert `flake.nix` to simpler `buildEnv` without env generation
 - Revert `entrypoint/env.sh` to not source generated environment file
 - Revert `entrypoint/bash` to include HISTFILE setup directly
-- Revert `entrypoint/zsh` to include ZDOTDIR setup directly
-- Revert `test/Dockerfile` COPY command
-- Remove `.dockerignore` file
+- Revert `entrypoint/zsh` to include ZDOTDIR setup directly (with USER_ZDOTDIR referencing ZDOTDIR)
+- Keep `shelffiles/packages/*.sh` files for manual user sourcing
 
 ## Impact
 
 - Affected specs: nix-build (or shell-integration if exists)
-- Affected code: `flake.nix`, `entrypoint/env.sh`, `entrypoint/bash`, `entrypoint/zsh`, `shelffiles/`, `test/Dockerfile`, `.dockerignore`
-- Users who relied on automatic environment setup will need to add package-specific environment variables to `user_env.sh` manually
+- Affected code: `flake.nix`, `entrypoint/env.sh`, `entrypoint/bash`, `entrypoint/zsh`, `shelffiles/generate_env.sh`
+- Users who relied on automatic environment setup should manually source needed files from `shelffiles/packages/` in their `user_env.sh`
