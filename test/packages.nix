@@ -1,4 +1,4 @@
-pkgs: nix-ai-tools: with pkgs; [
+pkgs: with pkgs; [
   # Test shells
   fish # Friendly Interactive Shell
   zsh # Z Shell
