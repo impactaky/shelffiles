@@ -13,11 +13,14 @@
         "x86_64-darwin"
       ];
 
-      # Load user packages or use default packages if user packages don't exist
+      # Load user packages from root, or fallback to example/packages.nix
       loadPackages =
         _: pkgs:
         let
-          packagesPath = ./packages.nix;
+          userPackagesPath = ./packages.nix;
+          examplePackagesPath = ./example/packages.nix;
+          packagesPath =
+            if builtins.pathExists userPackagesPath then userPackagesPath else examplePackagesPath;
         in
         import packagesPath pkgs;
     in
