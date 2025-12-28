@@ -58,7 +58,7 @@ Shelffiles is a portable environment configuration system that uses Nix to manag
    nix build
    ```
 
-> Note: The upstream repository does not include a root `packages.nix` file. If no root `packages.nix` exists, the build uses `example/packages.nix` as a fallback. You can track your customized `packages.nix` in your own fork without causing merge conflicts when pulling upstream changes.
+> Note: You must create `packages.nix` before running `nix build`. Copy from `example/packages.nix` and customize it. You can track your `packages.nix` in your own fork without causing merge conflicts when pulling upstream changes.
 
 ### Adding Configuration Files
 
@@ -125,7 +125,7 @@ shelffiles/
 ├── state/            # XDG_STATE_HOME
 ├── example/
 │   └── packages.nix  # Example package definitions (template)
-├── packages.nix      # User package definitions (git-ignored, copy from example/)
+├── packages.nix      # User package definitions (copy from example/)
 ├── entrypoint/       # Shell-specific entrypoint scripts
 │   ├── bash          # Bash entrypoint
 │   ├── fish          # Fish entrypoint
