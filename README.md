@@ -33,29 +33,32 @@ Shelffiles is a portable environment configuration system that uses Nix to manag
 
 ### Adding Packages
 
-Edit the `packages.nix` file to add or remove packages:
+1. Copy the example package configuration to the repository root:
+   ```bash
+   cp example/packages.nix packages.nix
+   ```
 
-```nix
-pkgs: with pkgs; [
-  # Core utilities
-  git      # Version control system
-  ripgrep  # Fast text search tool
-  fzf      # Command-line fuzzy finder
+2. Edit `packages.nix` to add or remove packages:
+   ```nix
+   pkgs: with pkgs; [
+     # Core utilities
+     git      # Version control system
+     ripgrep  # Fast text search tool
+     fzf      # Command-line fuzzy finder
 
-  # Uncomment or add packages you need
-  # zsh       # Z Shell
-  # neovim    # Vim-based text editor
-  # nodejs    # Node.js runtime
-]
-```
+     # Uncomment or add packages you need
+     # zsh       # Z Shell
+     # neovim    # Vim-based text editor
+     # nodejs    # Node.js runtime
+   ]
+   ```
 
-After modifying the package list, rebuild the environment with:
+3. Rebuild the environment:
+   ```bash
+   nix build
+   ```
 
-```bash
-nix build
-```
-
-> Note: If you want to keep your package configuration private, consider adding `/packages.nix` to your `.gitignore` file.
+> Note: You must create `packages.nix` before running `nix build`. Copy from `example/packages.nix` and customize it. You can track your `packages.nix` in your own fork without causing merge conflicts when pulling upstream changes.
 
 ### Adding Configuration Files
 
@@ -120,7 +123,9 @@ shelffiles/
 ├── cache/            # XDG_CACHE_HOME
 ├── share/            # XDG_DATA_HOME
 ├── state/            # XDG_STATE_HOME
-├── packages.nix      # Package definitions
+├── example/
+│   └── packages.nix  # Example package definitions (template)
+├── packages.nix      # User package definitions (copy from example/)
 ├── entrypoint/       # Shell-specific entrypoint scripts
 │   ├── bash          # Bash entrypoint
 │   ├── fish          # Fish entrypoint

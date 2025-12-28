@@ -13,13 +13,8 @@
         "x86_64-darwin"
       ];
 
-      # Load user packages or use default packages if user packages don't exist
-      loadPackages =
-        _: pkgs:
-        let
-          packagesPath = ./packages.nix;
-        in
-        import packagesPath pkgs;
+      # Load user packages from root packages.nix
+      loadPackages = _: pkgs: import ./packages.nix pkgs;
     in
     {
       packages = nixpkgs.lib.genAttrs systems (system: {
