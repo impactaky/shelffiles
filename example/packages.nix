@@ -9,6 +9,6 @@ pkgs: with pkgs; [
   # neovim    # Vim-based text editor
   # nodejs    # Node.js runtime
 
-  # To customize: copy this file to the repository root and edit it
+  # To customize: copy this file to the repository root
   # cp example/packages.nix packages.nix
 ]
