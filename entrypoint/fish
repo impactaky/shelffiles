@@ -2,12 +2,15 @@
 
 # Get the absolute path of the script directory
 SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)"
+SHELFFILES="$(CDPATH='' cd -- "$SCRIPT_DIR/.." && pwd)"
+export SHELFFILES
 
 # Source the environment setup
 . "$SCRIPT_DIR/env.sh"
 
 # Execute fish
-if [ ! -e "$SHELFFILES/result" ] && [ ! -e "$SHELFFILES/result_docker" ] ; then
+if [ "${shelffiles_portable_active:-0}" != 1 ] &&
+    [ ! -e "$SHELFFILES/result" ] && [ ! -e "$SHELFFILES/result_docker" ] ; then
     exec "$SCRIPT_DIR/launch_in_bwrap.sh" fish "$@"
 fi
 exec fish "$@"

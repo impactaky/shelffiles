@@ -20,7 +20,12 @@
       packages = nixpkgs.lib.genAttrs systems (system: {
         default = nixpkgs.legacyPackages.${system}.buildEnv {
           name = "shelffiles-env";
-          paths = loadPackages system nixpkgs.legacyPackages.${system};
+          # cacert is always included: entrypoint/env.sh points TLS clients at
+          # its bundle so the environment does not depend on host certificates.
+          paths = [
+            nixpkgs.legacyPackages.${system}.cacert
+          ]
+          ++ loadPackages system nixpkgs.legacyPackages.${system};
         };
       });
     };

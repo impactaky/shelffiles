@@ -6,6 +6,9 @@
 !packages.nix
 !shelffiles/
 !entrypoint/
+!portable/
+portable/nix/
+portable/result
 !test/
 !utils/
 !config/
