@@ -321,7 +321,7 @@ EOF
       "$checkout/entrypoint/$shell_name"
     echo "$output"
     [ "$status" -eq 0 ]
-    [[ "$output" == *":$checkout/result/bin:"* ]]
+    [[ "$output" == *"PATH=$checkout/result/bin:"* ]]
     [[ "$output" != *"$checkout/portable/result/bin"* ]]
   done
 
@@ -336,13 +336,12 @@ EOF
     [ ! -L "$config_prefix" ]
     [ ! -e "$other_prefix" ]
     [ ! -L "$other_prefix" ]
-    [[ "$output" == *"PATH=$checkout/portable/result/bin:"* ]]
-    [[ "$output" == *":$checkout/result/bin:"* ]]
+    [[ "$output" == *"PATH=$checkout/portable/result/bin:$checkout/result/bin:"* ]]
     [[ "$output" == *"SHELFFILES_ENV_FILE=unset"* ]]
   done
 }
 
-@test "portable wrappers never fall back to bwrap when ordinary results are absent" {
+@test "portable wrappers run without an ordinary result while ordinary entrypoints stop" {
   require_writable_nix_store
   require_alias_available "$runtime_prefix"
   create_export_fixture
@@ -350,12 +349,6 @@ EOF
     "$checkout/utils/create_portable.sh"
   [ "$status" -eq 0 ]
 
-  cat >"$checkout/entrypoint/launch_in_bwrap.sh" <<'EOF'
-#!/bin/sh
-printf 'BWRAP=%s\n' "$1"
-exit 91
-EOF
-  chmod 0755 "$checkout/entrypoint/launch_in_bwrap.sh"
   rm -- "$checkout/result"
 
   for shell_name in bash fish zsh; do
@@ -363,12 +356,12 @@ EOF
     echo "$output"
     [ "$status" -eq 0 ]
     [[ "$output" == *"SHELL=$shell_name"* ]]
-    [[ "$output" != *"BWRAP="* ]]
 
     run env PATH="$fake_bin:$PATH" "$checkout/entrypoint/$shell_name"
     echo "$output"
-    [ "$status" -eq 91 ]
-    [[ "$output" == *"BWRAP=$shell_name"* ]]
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"$checkout/result is missing"* ]]
+    [[ "$output" != *"SHELL=$shell_name"* ]]
   done
 }
 

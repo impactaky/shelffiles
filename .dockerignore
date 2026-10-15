@@ -4,7 +4,6 @@
 # Exception: Files needed for the build
 !flake.nix
 !packages.nix
-!shelffiles/
 !entrypoint/
 !portable/
 portable/nix/

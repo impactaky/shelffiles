@@ -12,8 +12,8 @@ mkdir -p "$XDG_STATE_HOME"/bash
 export HISTFILE="$XDG_STATE_HOME"/bash/history
 
 # Execute bash
-if [ "${shelffiles_portable_active:-0}" != 1 ] &&
-    [ ! -e "$SHELFFILES/result" ] && [ ! -e "$SHELFFILES/result_docker" ] ; then
-    exec "$SCRIPT_DIR/launch_in_bwrap.sh" bash --init-file "$XDG_CONFIG_HOME"/bash/.bashrc "$@"
+if [ "${shelffiles_portable_active:-0}" != 1 ] && [ ! -e "$SHELFFILES/result" ] ; then
+    echo "Error: $SHELFFILES/result is missing. Run ./setup.sh, or start an exported copy with portable/entrypoint/bash." >&2
+    exit 1
 fi
 exec bash --init-file "$XDG_CONFIG_HOME"/bash/.bashrc "$@"
