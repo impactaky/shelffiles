@@ -11,6 +11,7 @@
 | `config/shelffiles.conf` | settings read on entry, such as the portable prefix | no¹ |
 | `cache/`, `share/`, `state/` | XDG cache, data and state, namespaced per path, uid and gid | no |
 | `user_env.sh` | per-machine settings, sourced on entry | no |
+| `shelffiles/packages/` | snippets to source from `user_env.sh` | yes |
 | `entrypoint/{bash,zsh,fish}` | enter the environment | yes |
 | `entrypoint/env.sh` | environment setup shared by all entrypoints | yes |
 | `portable/entrypoint/{bash,zsh,fish}` | enter the portable export | yes |

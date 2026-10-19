@@ -13,3 +13,12 @@ Typical uses:
 - point programs that ignore XDG into the checkout
   (`export STARSHIP_CONFIG="$XDG_CONFIG_HOME/starship.toml"`)
 - machine-local proxies, tokens, or `PATH` additions such as your own scripts
+
+`shelffiles/packages/` holds ready-made snippets of this kind for a few
+programs (bash, zsh, starship, Node.js, Deno, Claude Code). Source the ones you
+use:
+
+```sh
+. "$SHELFFILES/shelffiles/packages/starship.sh"
+. "$SHELFFILES/shelffiles/packages/nodejs.sh"
+```
