@@ -1,8 +1,6 @@
 #!/bin/bash
 
 # @describe Setup development environment with Nix
-# @flag --no-root     Use nix-portable instead of root installation
-# @flag --sudo-mount  Use sudo with nsenter/mount for /nix access
 # @arg nix_args~      Additional arguments to pass to nix build
 
 # ARGC-BUILD {
@@ -20,6 +18,8 @@ _argc_run() {
     argc__positionals=()
     _argc_index=1
     _argc_len="${#argc__args[@]}"
+    _argc_required_flag_options=()
+    _argc_required_envs=()
     _argc_tools=()
     _argc_parse
     if [ -n "${argc__fn:-}" ]; then
@@ -31,16 +31,10 @@ _argc_usage() {
     cat <<-'EOF'
 Setup development environment with Nix
 
-USAGE: setup.sh [OPTIONS] [NIX-ARGS]...
+USAGE: setup.sh [NIX-ARGS]...
 
 ARGS:
   [NIX-ARGS]...  Additional arguments to pass to nix build
-
-OPTIONS:
-      --no-root     Use nix-portable instead of root installation
-      --sudo-mount  Use sudo with nsenter/mount for /nix access
-  -h, --help        Print help
-  -V, --version     Print version
 EOF
     exit
 }
@@ -57,44 +51,10 @@ _argc_parse() {
         _argc_item="${argc__args[_argc_index]}"
         _argc_key="${_argc_item%%=*}"
         case "$_argc_key" in
-        --help | -help | -h)
-            _argc_usage
-            ;;
         --version | -version | -V)
             _argc_version
             ;;
-        --)
-            _argc_dash="${#argc__positionals[@]}"
-            argc__positionals+=("${argc__args[@]:$((_argc_index + 1))}")
-            _argc_index=$_argc_len
-            break
-            ;;
-        --no-root)
-            if [[ "$_argc_item" == *=* ]]; then
-                _argc_die "error: flag \`--no-root\` don't accept any value"
-            fi
-            _argc_index=$((_argc_index + 1))
-            if [[ -n "${argc_no_root:-}" ]]; then
-                _argc_die "error: the argument \`--no-root\` cannot be used multiple times"
-            else
-                argc_no_root=1
-            fi
-            ;;
-        --sudo-mount)
-            if [[ "$_argc_item" == *=* ]]; then
-                _argc_die "error: flag \`--sudo-mount\` don't accept any value"
-            fi
-            _argc_index=$((_argc_index + 1))
-            if [[ -n "${argc_sudo_mount:-}" ]]; then
-                _argc_die "error: the argument \`--sudo-mount\` cannot be used multiple times"
-            else
-                argc_sudo_mount=1
-            fi
-            ;;
         *)
-            if _argc_maybe_flag_option "-" "$_argc_item"; then
-                _argc_die "error: unexpected argument \`$_argc_key\` found"
-            fi
             argc__positionals+=("$_argc_item")
             _argc_index=$((_argc_index + 1))
             if [[ "${#argc__positionals[@]}" -ge 0 ]]; then
@@ -162,31 +122,6 @@ _argc_match_positionals() {
     fi
 }
 
-_argc_maybe_flag_option() {
-    local signs="$1" arg="$2"
-    if [[ -z "$signs" ]]; then
-        return 1
-    fi
-    local cond=false
-    if [[ "$signs" == *"+"* ]]; then
-        if [[ "$arg" =~ ^\+[^+].* ]]; then
-            cond=true
-        fi
-    elif [[ "$arg" == -* ]]; then
-        if (( ${#arg} < 3 )) || [[ ! "$arg" =~ ^---.* ]]; then
-            cond=true
-        fi
-    fi
-    if [[ "$cond" == "false" ]]; then
-        return 1
-    fi
-    local value="${arg%%=*}"
-    if [[ "$value" =~ [[:space:]] ]]; then
-        return 1
-    fi
-    return 0
-}
-
 _argc_die() {
     if [[ $# -eq 0 ]]; then
         cat
@@ -202,44 +137,14 @@ _argc_run "$@"
 
 set -eu
 
-if [[ "$OSTYPE" == "darwin"* ]] && [ "${argc_no_root:-0}" -eq 1 ]; then
-    echo "Error: --no-root is not supported on macOS"
-    exit 1
+if [ -e "$HOME"/.nix-profile/etc/profile.d/nix.sh ]; then
+    # shellcheck disable=SC1091
+    . "$HOME"/.nix-profile/etc/profile.d/nix.sh
 fi
-
-# Create config directory if it doesn't exist
-mkdir -p config
-
-# Save sudo mount preference to config file
-if [ "${argc_sudo_mount:-0}" -eq 1 ]; then
-    echo "SUDO_MOUNT_ENABLED=1" > config/shelffiles.conf
-    echo "Sudo mount support enabled for containers"
-else
-    echo "SUDO_MOUNT_ENABLED=0" > config/shelffiles.conf
-fi
-
-# Use nix-portable when --no-root or --sudo-mount is specified
-if [ "${argc_no_root:-0}" -eq 1 ] || [ "${argc_sudo_mount:-0}" -eq 1 ]; then
-    if [ ! -e nix-portable ]; then
-        echo "Installing nix-portable..."
-        curl -L https://github.com/DavHau/nix-portable/releases/download/v012/nix-portable-"$(arch)" -o nix-portable
-        chmod +x nix-portable
-    fi
-else
-    if [ -e "$HOME"/.nix-profile/etc/profile.d/nix.sh ]; then
-        # shellcheck disable=SC1091
-        . "$HOME"/.nix-profile/etc/profile.d/nix.sh
-    fi
-    if ! command -v nix &> /dev/null; then
-        echo "Installing Nix..."
-        sh <(curl -L https://nixos.org/nix/install)
-    fi
+if ! command -v nix &> /dev/null; then
+    echo "Installing Nix..."
+    sh <(curl -L https://nixos.org/nix/install)
 fi
 
 echo "Building..."
-if [ "${argc_no_root:-0}" -eq 1 ] || [ "${argc_sudo_mount:-0}" -eq 1 ]; then
-    ./nix-portable nix build --extra-experimental-features nix-command --extra-experimental-features flakes --store "$(pwd)" "${argc_nix_args[@]}"
-else
-    nix build --extra-experimental-features nix-command --extra-experimental-features flakes "${argc_nix_args[@]}"
-fi
-
+nix build --extra-experimental-features nix-command --extra-experimental-features flakes "${argc_nix_args[@]}"

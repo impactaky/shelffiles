@@ -1,0 +1,7 @@
+#!/bin/sh
+
+SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd -P)"
+SHELFFILES_ENV_FILE="$SCRIPT_DIR/env.sh"
+export SHELFFILES_ENV_FILE
+
+exec "$SCRIPT_DIR/../../entrypoint/zsh" "$@"

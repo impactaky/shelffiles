@@ -3,7 +3,7 @@
 # Get the absolute path of the script directory
 SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)"
 SHELFFILES="$(CDPATH='' cd -- "$SCRIPT_DIR/.." && pwd)"
-export SHELFFILES="$SHELFFILES"
+export SHELFFILES
 
 # Source the environment setup
 . "$SCRIPT_DIR/env.sh"
@@ -15,7 +15,8 @@ export SHELFFILES="$SHELFFILES"
 export USER_ZDOTDIR="$ZDOTDIR"
 
 # Execute zsh
-if [ ! -e "$SHELFFILES/result" ] && [ ! -e "$SHELFFILES/result_docker" ] ; then
-    exec "$SCRIPT_DIR/launch_in_bwrap.sh" zsh "$@"
+if [ "${shelffiles_portable_active:-0}" != 1 ] && [ ! -e "$SHELFFILES/result" ] ; then
+    echo "Error: $SHELFFILES/result is missing. Run ./setup.sh, or start an exported copy with portable/entrypoint/zsh." >&2
+    exit 1
 fi
 exec zsh "$@"
