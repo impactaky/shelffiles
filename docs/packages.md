@@ -21,6 +21,15 @@ If you use a [portable export](carry.md#portable), run
 `./utils/create_portable.sh` again after the rebuild. It copies only the
 packages that changed.
 
+Packages come from stable nixpkgs. Prefix `unstable.` for a newer version:
+
+```nix
+pkgs: with pkgs; [
+  git
+  unstable.neovim
+]
+```
+
 To find package names, use <https://search.nixos.org/packages> or
 `nix search nixpkgs <name>`.
 
